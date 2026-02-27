@@ -1,4 +1,7 @@
 package lk.ijse.examsybackend.repository;
 
-public interface TeacherRepo {
+import lk.ijse.examsybackend.entity.Teacher;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface TeacherRepo extends JpaRepository<Teacher,Integer> {
 }
