@@ -1,4 +1,7 @@
 package lk.ijse.examsybackend.repository;
 
-public interface ExamSubmissionRepo {
+import lk.ijse.examsybackend.entity.ExamSubmission;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface ExamSubmissionRepo extends JpaRepository<ExamSubmission,Integer> {
 }

@@ -1,4 +1,7 @@
 package lk.ijse.examsybackend.repository;
 
-public interface QuestionOptionRepo {
+import lk.ijse.examsybackend.entity.QuestionOption;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+public interface QuestionOptionRepo extends JpaRepository<QuestionOption,Integer> {
 }
