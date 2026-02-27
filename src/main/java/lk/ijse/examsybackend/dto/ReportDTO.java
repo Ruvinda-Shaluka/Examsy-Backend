@@ -44,7 +44,7 @@ public class ReportDTO {
     @Size(max = 30, message = "Status cannot exceed 30 characters")
     private String status;
 
-    @Size(max = 500, message = "Admin notes cannot exceed 500 characters")
+    @Size(max = 800, message = "Admin notes cannot exceed 500 characters")
     private String adminNotes;
 
     private LocalDateTime reportedAt;
