@@ -33,5 +33,6 @@ build/
 .vscode/
 
 # Application properties
-application.properties
-application.yml
+*.properties
+*.yml
+*.yaml
