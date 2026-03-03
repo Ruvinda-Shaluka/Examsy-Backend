@@ -83,4 +83,15 @@ public class GlobalExceptionHandler {
                 ex.getMessage()
         ), HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    // 7. Handle custom RuntimeExceptions (e.g., User already exists)
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<APIResponse<String>> handleRuntimeException(RuntimeException ex) {
+        return new ResponseEntity<>(new APIResponse<>(
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                ex.getMessage()
+        ), HttpStatus.BAD_REQUEST);
+    }
+
 }

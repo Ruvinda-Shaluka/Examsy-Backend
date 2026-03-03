@@ -33,12 +33,15 @@ public class Teacher {
     @Column(name = "professional_bio", columnDefinition = "TEXT")
     private String professionalBio;
 
+    @Builder.Default
     @Column(name = "notify_email")
     private Boolean notifyEmail = true;
 
+    @Builder.Default
     @Column(name = "notify_push")
     private Boolean notifyPush = false;
 
+    @Builder.Default
     @Column(name = "notify_security")
     private Boolean notifySecurity = true;
 }
