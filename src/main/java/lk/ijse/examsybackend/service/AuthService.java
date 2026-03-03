@@ -33,13 +33,14 @@ public class AuthService {
      * Authenticates a user (Student, Teacher, or Admin) and returns a JWT token.
      */
     public AuthResponseDTO authenticate(AuthDTO authDTO) {
+        String identifier = authDTO.getUsername();
         // 1. Find user from DB
-        UserAccount user = userAccountRepository.findByUsername(authDTO.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + authDTO.getUsername()));
+        UserAccount user = userAccountRepository.findByUsernameOrEmail(identifier, identifier)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found: " + identifier));
 
         // 2. Match passwords (DB hash vs Request password)
         if (!passwordEncoder.matches(authDTO.getPassword(), user.getPasswordHash())) {
-            throw new BadCredentialsException("Invalid credentials for user: " + authDTO.getUsername());
+            throw new BadCredentialsException("Invalid credentials for user: " + identifier);
         }
 
         // 3. Generate new token
