@@ -1,7 +1,9 @@
 package lk.ijse.examsybackend.config;
 
 import lk.ijse.examsybackend.dto.StudentDTO;
+import lk.ijse.examsybackend.dto.TeacherDTO;
 import lk.ijse.examsybackend.entity.Student;
+import lk.ijse.examsybackend.entity.Teacher;
 import lk.ijse.examsybackend.repository.UserAccountRepo;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -46,6 +48,11 @@ public class ApplicationConfig {
         // Tell STRICT mode exactly how to map the nested UserAccount ID to the flat DTO field
         modelMapper.typeMap(Student.class, StudentDTO.class).addMappings(mapper -> {
             mapper.map(src -> src.getUserAccount().getId(), StudentDTO::setUserAccountId);
+        });
+
+        //Teacher Mapping
+        modelMapper.typeMap(Teacher.class, TeacherDTO.class).addMappings(mapper -> {
+            mapper.map(src -> src.getUserAccount().getId(), TeacherDTO::setUserAccountId);
         });
 
         return modelMapper;
