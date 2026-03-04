@@ -20,14 +20,24 @@ import java.io.IOException;
 public class JwtAuthFilter extends OncePerRequestFilter {
     private final JwtUtil jwtUtil;
     private final UserDetailsService userDetailsService;
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
+
+        // 🛡️ THE SHIELD: Let browser preflight (OPTIONS) requests pass through immediately!
+        // This prevents CORS errors from crashing the security filter.
+        if (request.getMethod().equalsIgnoreCase("OPTIONS")) {
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         final String authHeader = request.getHeader("Authorization");
         final String jwtToken;
         final String username;
 
+        // If there's no token, let it continue (it might be a public endpoint like /login)
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -52,8 +62,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         } catch (Exception e) {
             // If the token is expired, invalid, or the user was deleted from the database,
             // we catch the error here so the server doesn't crash!
-            // We just ignore the bad token and let the request continue as "unauthenticated".
-            System.out.println("Ignored invalid or expired JWT token.");
+            System.out.println("Ignored invalid or expired JWT token: " + e.getMessage());
         }
 
         filterChain.doFilter(request, response);

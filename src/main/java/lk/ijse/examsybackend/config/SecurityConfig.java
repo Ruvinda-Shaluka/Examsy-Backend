@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -24,10 +25,11 @@ import java.util.List;
 @EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    // We only inject these three. We DO NOT inject the AuthenticationProvider here anymore!
     private final UserDetailsService userDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
     private final PasswordEncoder passwordEncoder;
-    private final AuthenticationProvider authenticationProvider;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -35,12 +37,11 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
 
                 /*
-                tells spring security to use the CORS configuration
-                 we defined in the corsConfigurationSource() method below.
-                  This is crucial for allowing our React frontend to communicate
-                  with our Spring Boot backend without running into CORS errors.
+                Tells spring security to use the CORS configuration
+                we defined in the corsConfigurationSource() method below.
+                Using Customizer.withDefaults() automatically wires it up safely!
                 */
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(Customizer.withDefaults())
 
                 .authorizeHttpRequests(auth -> auth
                         // EXPLICITLY ALLOW ALL 'OPTIONS' PREFLIGHT REQUESTS
@@ -53,7 +54,10 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authenticationProvider(authenticationProvider)
+
+                // Call the method directly here to break the circular dependency!
+                .authenticationProvider(authenticateProvider())
+
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -68,10 +72,10 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of("http://localhost:5173"));
 
         // Allow these HTTP methods (including OPTIONS!)
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
 
         // Allow these headers (Authorization is the critical one here!)
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
 
         // Allow cookies/credentials
         configuration.setAllowCredentials(true);
@@ -83,10 +87,8 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationProvider authenticateProvider() {
-        DaoAuthenticationProvider daoAuthenticationProvider =
-                new DaoAuthenticationProvider(userDetailsService);
+        DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider(userDetailsService);
         daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
         return daoAuthenticationProvider;
     }
-
 }
