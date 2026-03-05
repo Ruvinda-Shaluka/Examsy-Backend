@@ -2,6 +2,7 @@ package lk.ijse.examsybackend.controller;
 
 import jakarta.validation.Valid;
 import lk.ijse.examsybackend.dto.JoinClassDTO;
+import lk.ijse.examsybackend.dto.ReportCreateDTO;
 import lk.ijse.examsybackend.dto.StudentClassCardDTO;
 import lk.ijse.examsybackend.service.StudentDashboardService;
 import lk.ijse.examsybackend.util.APIResponse;
@@ -45,4 +46,14 @@ public class StudentDashboardController {
         StudentClassCardDTO joinedClass = dashboardService.joinClass(userDetails.getUsername(), dto);
         return ResponseEntity.ok(new APIResponse<>(201, "Successfully joined the class", joinedClass));
     }
+
+    @PostMapping("/classes/report")
+    public ResponseEntity<APIResponse<Void>> reportClass(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody ReportCreateDTO dto) {
+
+        dashboardService.fileReport(userDetails.getUsername(), dto);
+        return ResponseEntity.ok(new APIResponse<>(201, "Report submitted successfully", null));
+    }
+
 }
