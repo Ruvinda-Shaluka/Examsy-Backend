@@ -124,4 +124,35 @@ public class AdminReportService {
             System.err.println("Failed to send email to " + toEmail + ": " + e.getMessage());
         }
     }
+
+    @Transactional
+    public void sendWarning(Integer reportId) {
+        Report report = reportRepository.findById(reportId)
+                .orElseThrow(() -> new RuntimeException("Report not found"));
+
+        Course course = report.getTargetCourse();
+        Teacher teacher = course.getTeacher();
+        Student reporter = report.getReporterStudent();
+
+        // 1. Send Warning to Teacher
+        if (teacher.getNotifySecurity() != null && teacher.getNotifySecurity()) {
+            sendInAppNotification(teacher.getUserAccount(), "Official Warning",
+                    "Your class '" + course.getName() + "' has received complaints regarding policy violations. Please review your content immediately.");
+        }
+        if (teacher.getNotifyEmail() != null && teacher.getNotifyEmail()) {
+            sendEmail(teacher.getUserAccount().getUsername(), "Action Required: Examsy Official Warning",
+                    "We have received reports about your class '" + course.getName() + "'. Please ensure your materials comply with our guidelines.");
+        }
+
+        // 2. Acknowledge Student
+        if (reporter.getNotifyIdentity() != null && reporter.getNotifyIdentity()) {
+            sendInAppNotification(reporter.getUserAccount(), "Report Reviewed",
+                    "We have reviewed your report on '" + course.getName() + "' and issued an official warning to the instructor.");
+        }
+
+        // 3. Mark the report as resolved
+        report.setStatus("RESOLVED");
+        report.setAdminNotes("Official warning sent to teacher.");
+        reportRepository.save(report);
+    }
 }

@@ -41,4 +41,11 @@ public class AdminReportController {
         adminReportService.dismissReport(reportId);
         return ResponseEntity.ok(new APIResponse<>(200, "Report dismissed", null));
     }
+
+
+    @PostMapping("/{reportId}/warn-teacher")
+    public ResponseEntity<APIResponse<Void>> warnTeacher(@PathVariable Integer reportId) {
+        adminReportService.sendWarning(reportId);
+        return ResponseEntity.ok(new APIResponse<>(200, "Warning sent to teacher and student acknowledged.", null));
+    }
 }
