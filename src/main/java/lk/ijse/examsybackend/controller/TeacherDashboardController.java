@@ -1,5 +1,6 @@
 package lk.ijse.examsybackend.controller;
 
+import lk.ijse.examsybackend.dto.CourseCreateDTO;
 import lk.ijse.examsybackend.dto.TeacherClassCardDTO;
 import lk.ijse.examsybackend.service.TeacherDashboardService;
 import lk.ijse.examsybackend.util.APIResponse;
@@ -24,6 +25,15 @@ public class TeacherDashboardController {
     public ResponseEntity<APIResponse<List<TeacherClassCardDTO>>> getMyClasses(@AuthenticationPrincipal UserDetails userDetails) {
         List<TeacherClassCardDTO> classes = dashboardService.getMyClasses(userDetails.getUsername());
         return ResponseEntity.ok(new APIResponse<>(200, "Classes fetched successfully", classes));
+    }
+
+    @PostMapping("/classes")
+    public ResponseEntity<APIResponse<TeacherClassCardDTO>> createClass(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody CourseCreateDTO dto) {
+
+        TeacherClassCardDTO newClass = dashboardService.createClass(userDetails.getUsername(), dto);
+        return ResponseEntity.ok(new APIResponse<>(201, "Class created successfully", newClass));
     }
 
     @DeleteMapping("/classes/{courseId}")
