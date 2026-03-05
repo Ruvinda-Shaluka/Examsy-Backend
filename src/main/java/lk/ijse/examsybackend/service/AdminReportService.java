@@ -37,6 +37,7 @@ public class AdminReportService {
                         .className(r.getTargetCourse().getName())
                         .teacherName(r.getTargetCourse().getTeacher().getFullName())
                         .reporterName(r.getReporterStudent().getFullName())
+                        .teacherComplaintCount(reportRepository.countByTargetCourseTeacher(r.getTargetCourse().getTeacher()))
                         .build())
                 .collect(Collectors.toList());
     }
@@ -73,6 +74,25 @@ public class AdminReportService {
             sendInAppNotification(reporter.getUserAccount(), "Report Resolved",
                     "Action has been taken regarding your report on '" + course.getName() + "'.");
         }
+    }
+
+    // Send a direct custom reply to the student
+    @Transactional
+    public void replyToStudent(Integer reportId, String messageBody) {
+        Report report = reportRepository.findById(reportId).orElseThrow();
+        Student reporter = report.getReporterStudent();
+
+        if (reporter.getNotifyIdentity() != null && reporter.getNotifyIdentity()) {
+            sendInAppNotification(reporter.getUserAccount(), "Admin Update on Report #" + reportId, messageBody);
+        }
+        if (reporter.getNotifyEmail() != null && reporter.getNotifyEmail()) {
+            sendEmail(reporter.getUserAccount().getUsername(), "Update on your Examsy Report", messageBody);
+        }
+
+        // Append note for admin records
+        String existingNotes = report.getAdminNotes() == null ? "" : report.getAdminNotes() + "\n";
+        report.setAdminNotes(existingNotes + "Admin Replied to Student: " + messageBody);
+        reportRepository.save(report);
     }
 
     @Transactional
@@ -125,8 +145,9 @@ public class AdminReportService {
         }
     }
 
+    // Send an official warning to the teacher AND acknowledge the student
     @Transactional
-    public void sendWarning(Integer reportId) {
+    public void warnTeacher(Integer reportId) {
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new RuntimeException("Report not found"));
 
@@ -144,7 +165,7 @@ public class AdminReportService {
                     "We have received reports about your class '" + course.getName() + "'. Please ensure your materials comply with our guidelines.");
         }
 
-        // 2. Acknowledge Student
+        // 2. Acknowledge Student (Crucial step!)
         if (reporter.getNotifyIdentity() != null && reporter.getNotifyIdentity()) {
             sendInAppNotification(reporter.getUserAccount(), "Report Reviewed",
                     "We have reviewed your report on '" + course.getName() + "' and issued an official warning to the instructor.");
@@ -152,7 +173,8 @@ public class AdminReportService {
 
         // 3. Mark the report as resolved
         report.setStatus("RESOLVED");
-        report.setAdminNotes("Official warning sent to teacher.");
+        report.setAdminNotes("Official warning sent to teacher. Student acknowledged.");
         reportRepository.save(report);
     }
+
 }

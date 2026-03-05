@@ -23,4 +23,5 @@ public class AdminReportDTO {
     private String className;
     private String teacherName;
     private String reporterName;
+    private Long teacherComplaintCount;
 }

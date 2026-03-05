@@ -42,10 +42,17 @@ public class AdminReportController {
         return ResponseEntity.ok(new APIResponse<>(200, "Report dismissed", null));
     }
 
-
     @PostMapping("/{reportId}/warn-teacher")
     public ResponseEntity<APIResponse<Void>> warnTeacher(@PathVariable Integer reportId) {
-        adminReportService.sendWarning(reportId);
-        return ResponseEntity.ok(new APIResponse<>(200, "Warning sent to teacher and student acknowledged.", null));
+        adminReportService.warnTeacher(reportId);
+        return ResponseEntity.ok(new APIResponse<>(200, "Warning sent to teacher.", null));
+    }
+
+    @PostMapping("/{reportId}/reply-student")
+    public ResponseEntity<APIResponse<Void>> replyToStudent(
+            @PathVariable Integer reportId,
+            @RequestParam String message) { // Captures the custom message from React
+        adminReportService.replyToStudent(reportId, message);
+        return ResponseEntity.ok(new APIResponse<>(200, "Reply sent to student.", null));
     }
 }
