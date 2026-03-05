@@ -1,7 +1,9 @@
 package lk.ijse.examsybackend.controller;
 
+import jakarta.validation.Valid;
+import lk.ijse.examsybackend.dto.JoinClassDTO;
 import lk.ijse.examsybackend.dto.StudentClassCardDTO;
-import lk.ijse.examsybackend.service.ClassEnrollmentService;
+import lk.ijse.examsybackend.service.StudentDashboardService;
 import lk.ijse.examsybackend.util.APIResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,7 +20,7 @@ import java.util.List;
 @Validated
 public class StudentDashboardController {
 
-    private final ClassEnrollmentService dashboardService;
+    private final StudentDashboardService dashboardService;
 
     @GetMapping("/classes")
     public ResponseEntity<APIResponse<List<StudentClassCardDTO>>> getEnrolledClasses(
@@ -33,5 +35,14 @@ public class StudentDashboardController {
             @PathVariable Integer courseId) {
         dashboardService.unenrollFromClass(userDetails.getUsername(), courseId);
         return ResponseEntity.ok(new APIResponse<>(200, "Successfully unenrolled from class", null));
+    }
+
+    @PostMapping("/classes/join")
+    public ResponseEntity<APIResponse<StudentClassCardDTO>> joinClass(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody JoinClassDTO dto) { // @Valid checks the inviteLink
+
+        StudentClassCardDTO joinedClass = dashboardService.joinClass(userDetails.getUsername(), dto);
+        return ResponseEntity.ok(new APIResponse<>(201, "Successfully joined the class", joinedClass));
     }
 }
