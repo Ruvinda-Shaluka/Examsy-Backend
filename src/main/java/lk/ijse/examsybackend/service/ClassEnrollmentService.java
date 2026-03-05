@@ -2,11 +2,11 @@ package lk.ijse.examsybackend.service;
 
 import lk.ijse.examsybackend.dto.StudentClassCardDTO;
 import lk.ijse.examsybackend.entity.ClassEnrollment;
+import lk.ijse.examsybackend.entity.Course;
 import lk.ijse.examsybackend.repository.ClassEnrollmentRepo;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional; // Make sure this is imported!
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,25 +16,24 @@ import java.util.stream.Collectors;
 public class ClassEnrollmentService {
 
     private final ClassEnrollmentRepo enrollmentRepository;
-    private final ModelMapper modelMapper;
 
+    // 🛡️ The Transactional annotation keeps the DB session open for Lazy loading!
+    @Transactional(readOnly = true)
     public List<StudentClassCardDTO> getMyEnrolledClasses(String username) {
         List<ClassEnrollment> enrollments = enrollmentRepository.findByStudentUserAccountUsername(username);
 
         return enrollments.stream().map(enrollment -> {
-            // Map the base course details
-            StudentClassCardDTO dto = modelMapper.map(enrollment.getCourse(), StudentClassCardDTO.class);
+            Course course = enrollment.getCourse();
 
-            // Explicitly map the fields that have different names in React vs Entity
-            dto.setTitle(enrollment.getCourse().getName());
-            dto.setSection(enrollment.getCourse().getSectionName());
-            dto.setBannerColor(enrollment.getCourse().getThemeColorHex());
+            // Using the Builder pattern is much safer here than ModelMapper
+            return StudentClassCardDTO.builder()
+                    .id(course.getId())
+                    .title(course.getName())
+                    .section(course.getSectionName())
+                    .bannerColor(course.getThemeColorHex())
+                    .teacher(course.getTeacher() != null ? course.getTeacher().getFullName() : "Unknown Instructor")
+                    .build();
 
-            // Map the nested teacher name safely
-            if (enrollment.getCourse().getTeacher() != null) {
-                dto.setTeacher(enrollment.getCourse().getTeacher().getFullName());
-            }
-            return dto;
         }).collect(Collectors.toList());
     }
 
@@ -46,5 +45,4 @@ public class ClassEnrollmentService {
 
         enrollmentRepository.delete(enrollment);
     }
-
 }
