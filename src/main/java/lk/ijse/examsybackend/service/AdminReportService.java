@@ -65,7 +65,7 @@ public class AdminReportService {
                     "Your class '" + course.getName() + "' was terminated due to policy violations.");
         }
         if (teacher.getNotifyEmail() != null && teacher.getNotifyEmail()) {
-            sendEmail(teacher.getUserAccount().getUsername(), "Notice: Class Terminated",
+            sendEmail(teacher.getUserAccount().getEmail(), "Notice: Class Terminated",
                     "Your class '" + course.getName() + "' was removed by administration following a review.");
         }
 
@@ -86,7 +86,7 @@ public class AdminReportService {
             sendInAppNotification(reporter.getUserAccount(), "Admin Update on Report #" + reportId, messageBody);
         }
         if (reporter.getNotifyEmail() != null && reporter.getNotifyEmail()) {
-            sendEmail(reporter.getUserAccount().getUsername(), "Update on your Examsy Report", messageBody);
+            sendEmail(reporter.getUserAccount().getEmail(), "Update on your Examsy Report", messageBody);
         }
 
         // Append note for admin records
@@ -111,7 +111,7 @@ public class AdminReportService {
         reportRepository.save(report);
 
         // 3. Email Teacher (Even if deleted, send a final notice)
-        sendEmail(teacher.getUserAccount().getUsername(), "Account Termination Notice",
+        sendEmail(teacher.getUserAccount().getEmail(), "Account Termination Notice",
                 "Your Examsy instructor account has been permanently terminated due to severe policy violations.");
     }
 
@@ -161,7 +161,7 @@ public class AdminReportService {
                     "Your class '" + course.getName() + "' has received complaints regarding policy violations. Please review your content immediately.");
         }
         if (teacher.getNotifyEmail() != null && teacher.getNotifyEmail()) {
-            sendEmail(teacher.getUserAccount().getUsername(), "Action Required: Examsy Official Warning",
+            sendEmail(teacher.getUserAccount().getEmail(), "Action Required: Examsy Official Warning",
                     "We have received reports about your class '" + course.getName() + "'. Please ensure your materials comply with our guidelines.");
         }
 
