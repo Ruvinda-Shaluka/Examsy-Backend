@@ -1,5 +1,6 @@
 package lk.ijse.examsybackend.controller;
 
+import jakarta.validation.Valid;
 import lk.ijse.examsybackend.dto.StudentDTO;
 import lk.ijse.examsybackend.service.StudentService;
 import lk.ijse.examsybackend.util.APIResponse;
@@ -35,7 +36,7 @@ public class StudentSettingsController {
     @PutMapping("/me")
     public ResponseEntity<APIResponse<StudentDTO>> updateMyProfile(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestBody StudentDTO updateData) {
+            @Valid @RequestBody StudentDTO updateData) {
 
         StudentDTO updatedProfile = studentService.updateMyProfile(userDetails.getUsername(), updateData);
 
