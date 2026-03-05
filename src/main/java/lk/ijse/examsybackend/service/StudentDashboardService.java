@@ -1,12 +1,15 @@
 package lk.ijse.examsybackend.service;
 
 import lk.ijse.examsybackend.dto.JoinClassDTO;
+import lk.ijse.examsybackend.dto.ReportCreateDTO;
 import lk.ijse.examsybackend.dto.StudentClassCardDTO;
 import lk.ijse.examsybackend.entity.ClassEnrollment;
 import lk.ijse.examsybackend.entity.Course;
+import lk.ijse.examsybackend.entity.Report;
 import lk.ijse.examsybackend.entity.Student;
 import lk.ijse.examsybackend.repository.ClassEnrollmentRepo;
 import lk.ijse.examsybackend.repository.CourseRepo;
+import lk.ijse.examsybackend.repository.ReportRepo;
 import lk.ijse.examsybackend.repository.StudentRepo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,8 +23,9 @@ import java.util.stream.Collectors;
 public class StudentDashboardService {
 
     private final ClassEnrollmentRepo enrollmentRepository;
-    private final CourseRepo courseRepository; // 🟢 Added to find the class
+    private final CourseRepo courseRepository;
     private final StudentRepo studentRepository;
+    private final ReportRepo reportRepository;
 
     // 🛡️ The Transactional annotation keeps the DB session open for Lazy loading!
     @Transactional(readOnly = true)
@@ -103,4 +107,26 @@ public class StudentDashboardService {
                 .build();
     }
 
+    @Transactional
+    public void fileReport(String username, ReportCreateDTO dto) {
+        // 1. Find the reporting student
+        Student student = studentRepository.findByUserAccountUsername(username)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        // 2. Find the target course
+        Course course = courseRepository.findById(dto.getTargetCourseId())
+                .orElseThrow(() -> new RuntimeException("Course not found"));
+
+        // 3. Map and save the Report
+        Report report = Report.builder()
+                .reporterStudent(student)
+                .targetCourse(course)
+                .category(dto.getCategory())
+                .description(dto.getDescription())
+                .priorityLevel(dto.getPriorityLevel())
+                .status("PENDING") // Default status
+                .build();
+
+        reportRepository.save(report);
+    }
 }
