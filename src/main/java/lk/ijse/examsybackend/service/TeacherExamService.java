@@ -58,6 +58,7 @@ public class TeacherExamService {
                     Question question = Question.builder()
                             .exam(exam)
                             .questionText(qDto.getQuestionText())
+                            .questionType(dto.getExamType())
                             .points(qDto.getPoints())
                             .orderIndex(orderIdx++)
                             .build();
