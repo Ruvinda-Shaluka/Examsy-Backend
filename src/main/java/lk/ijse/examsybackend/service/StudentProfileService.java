@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class StudentService {
+public class StudentProfileService {
 
     private final StudentRepo studentRepository;
     private final ModelMapper modelMapper; // Inject ModelMapper here!
