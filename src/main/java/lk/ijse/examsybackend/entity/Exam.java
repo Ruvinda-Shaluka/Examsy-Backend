@@ -2,8 +2,8 @@ package lk.ijse.examsybackend.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "exams")
@@ -20,14 +20,11 @@ public class Exam {
     @Column(nullable = false)
     private String title;
 
-    @Column(columnDefinition = "TEXT")
-    private String instructions;
-
     @Column(name = "exam_mode", length = 20)
-    private String examMode = "REAL_TIME";
+    private String examMode; // REAL_TIME or DEADLINE
 
     @Column(name = "exam_type", length = 20)
-    private String examType = "MIXED";
+    private String examType; // MCQ, SHORT, PDF
 
     @Column(name = "scheduled_start_time")
     private LocalDateTime scheduledStartTime;
@@ -45,5 +42,9 @@ public class Exam {
     private java.math.BigDecimal maxScore;
 
     @Column(length = 20)
-    private String status = "DRAFT";
+    private String status = "PUBLISHED";
+
+    // Cascade allows you to save the exam and questions all at once!
+    @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Question> questions;
 }

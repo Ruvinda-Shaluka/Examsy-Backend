@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Entity
 @Table(name = "questions")
@@ -28,4 +29,8 @@ public class Question {
 
     @Column(name = "order_index")
     private Integer orderIndex;
+
+    // Cascade options
+    @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<QuestionOption> options;
 }
