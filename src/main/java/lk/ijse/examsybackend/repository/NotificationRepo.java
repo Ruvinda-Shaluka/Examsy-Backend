@@ -6,4 +6,7 @@ import java.util.List;
 
 public interface NotificationRepo extends JpaRepository<Notification, Integer> {
     List<Notification> findByUserAccountUsernameOrderByCreatedAtDesc(String username);
+
+    // Gets the little red badge count for the bell icon
+    long countByUserAccountUsernameAndIsReadFalse(String username);
 }
