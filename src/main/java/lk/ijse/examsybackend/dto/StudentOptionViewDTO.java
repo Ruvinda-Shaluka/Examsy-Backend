@@ -5,7 +5,7 @@ import lombok.Data;
 
 @Data
 @Builder
-class StudentOptionViewDTO {
+public class StudentOptionViewDTO {
     private Integer id;
     private String text;
 }
