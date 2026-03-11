@@ -1,4 +1,4 @@
-package lk.ijse.examsybackend.service;
+package lk.ijse.examsybackend.service.impl;
 
 import lk.ijse.examsybackend.dto.JoinClassDTO;
 import lk.ijse.examsybackend.dto.ReportCreateDTO;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class StudentDashboardService {
+public class StudentDashboardServiceImpl {
 
     private final ClassEnrollmentRepo enrollmentRepository;
     private final CourseRepo courseRepository;

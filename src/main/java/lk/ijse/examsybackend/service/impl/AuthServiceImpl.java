@@ -1,4 +1,4 @@
-package lk.ijse.examsybackend.service;
+package lk.ijse.examsybackend.service.impl;
 
 import lk.ijse.examsybackend.dto.AuthDTO;
 import lk.ijse.examsybackend.dto.AuthResponseDTO;
@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class AuthService {
+public class AuthServiceImpl {
 
     private final UserAccountRepo userAccountRepository;
     private final StudentRepo studentRepository;

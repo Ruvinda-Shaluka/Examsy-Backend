@@ -1,4 +1,4 @@
-package lk.ijse.examsybackend.service;
+package lk.ijse.examsybackend.service.impl;
 
 import lk.ijse.examsybackend.dto.ExamPublishDTO;
 import lk.ijse.examsybackend.dto.QuestionDTO;
@@ -15,7 +15,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class TeacherExamService {
+public class TeacherExamServiceImpl {
 
     private final ExamRepo examRepository;
     private final CourseRepo courseRepository;

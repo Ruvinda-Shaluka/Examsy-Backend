@@ -1,4 +1,4 @@
-package lk.ijse.examsybackend.service;
+package lk.ijse.examsybackend.service.impl;
 
 import lk.ijse.examsybackend.dto.StudentDTO;
 import lk.ijse.examsybackend.entity.Student;
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class StudentProfileService {
+public class StudentProfileServiceImpl {
 
     private final StudentRepo studentRepository;
     private final ModelMapper modelMapper; // Inject ModelMapper here!

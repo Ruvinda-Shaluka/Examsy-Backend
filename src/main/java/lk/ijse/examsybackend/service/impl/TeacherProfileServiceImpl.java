@@ -1,4 +1,4 @@
-package lk.ijse.examsybackend.service;
+package lk.ijse.examsybackend.service.impl;
 
 import lk.ijse.examsybackend.dto.TeacherDTO;
 import lk.ijse.examsybackend.entity.Teacher;
@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class TeacherProfileService {
+public class TeacherProfileServiceImpl {
 
     private final TeacherRepo teacherRepository;
     private final ModelMapper modelMapper;

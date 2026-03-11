@@ -1,4 +1,4 @@
-package lk.ijse.examsybackend.service;
+package lk.ijse.examsybackend.service.impl;
 
 import lk.ijse.examsybackend.dto.AdminReportDTO;
 import lk.ijse.examsybackend.entity.*;
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class AdminReportService {
+public class AdminReportServiceImpl {
 
     private final ReportRepo reportRepository;
     private final CourseRepo courseRepository;

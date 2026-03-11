@@ -1,4 +1,4 @@
-package lk.ijse.examsybackend.service;
+package lk.ijse.examsybackend.service.impl;
 
 import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.entity.*;
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class StudentExamService {
+public class StudentExamServiceImpl {
 
     private final ExamRepo examRepository;
     private final ExamSubmissionRepo submissionRepository;

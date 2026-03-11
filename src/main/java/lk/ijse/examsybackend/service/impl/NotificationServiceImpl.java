@@ -1,4 +1,4 @@
-package lk.ijse.examsybackend.service;
+package lk.ijse.examsybackend.service.impl;
 
 import lk.ijse.examsybackend.dto.NotificationDTO;
 import lk.ijse.examsybackend.entity.Notification;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class NotificationService {
+public class NotificationServiceImpl {
 
     private final NotificationRepo notificationRepository;
     private final StudentRepo studentRepository;
