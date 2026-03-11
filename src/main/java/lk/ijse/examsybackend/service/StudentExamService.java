@@ -161,20 +161,23 @@ public class StudentExamService {
     // --- 4. ACADEMIC VAULT: Fetch published exams for the dashboard ---
     @Transactional(readOnly = true)
     public VaultExamsResponseDTO getVaultExams(String username) {
-        // Step A: Verify the student exists
         Student student = studentRepository.findByUserAccountUsername(username)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        // Step B: Fetch all published exams from the database
-        // (Note: In the future, you can filter this to only show exams for the specific courses the student is enrolled in!)
         List<Exam> allPublishedExams = examRepository.findAllByStatus("PUBLISHED");
 
-        // Step C: Prepare the two empty lists
         List<VaultExamItemDTO> upcoming = new java.util.ArrayList<>();
         List<VaultExamItemDTO> available = new java.util.ArrayList<>();
 
-        // Step D: Sort the exams into the correct lists based on their mode
         for (Exam exam : allPublishedExams) {
+
+            // 🟢 CHECK SUBMISSION STATUS FOR THIS SPECIFIC STUDENT
+            String currentStatus = "NOT_STARTED";
+            java.util.Optional<ExamSubmission> subOpt = submissionRepository.findByExamIdAndStudentId(exam.getId(), student.getId());
+            if (subOpt.isPresent()) {
+                currentStatus = subOpt.get().getStatus(); // Gets "SUBMITTED" or "IN_PROGRESS"
+            }
+
             VaultExamItemDTO dto = VaultExamItemDTO.builder()
                     .id(exam.getId())
                     .title(exam.getTitle())
@@ -183,9 +186,9 @@ public class StudentExamService {
                     .scheduledStartTime(exam.getScheduledStartTime())
                     .deadlineTime(exam.getDeadlineTime())
                     .status(exam.getStatus())
+                    .studentStatus(currentStatus) // 🟢 Map the status to the DTO
                     .build();
 
-            // Check if it's a REAL-TIME or DEADLINE exam
             if ("REAL-TIME".equalsIgnoreCase(exam.getExamMode()) || "REAL_TIME".equalsIgnoreCase(exam.getExamMode())) {
                 upcoming.add(dto);
             } else {
@@ -193,7 +196,6 @@ public class StudentExamService {
             }
         }
 
-        // Step E: Package them into the final Response DTO
         return new VaultExamsResponseDTO(upcoming, available);
     }
 }

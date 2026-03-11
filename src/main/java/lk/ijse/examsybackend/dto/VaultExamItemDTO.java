@@ -18,4 +18,5 @@ public class VaultExamItemDTO {
     private LocalDateTime scheduledStartTime;
     private LocalDateTime deadlineTime;
     private String status;
+    private String studentStatus; // "Not Attempted", "In Progress", "Completed"
 }
