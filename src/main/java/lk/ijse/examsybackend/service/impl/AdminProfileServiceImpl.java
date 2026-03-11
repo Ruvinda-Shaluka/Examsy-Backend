@@ -4,13 +4,14 @@ import lk.ijse.examsybackend.dto.AdminProfileDTO;
 import lk.ijse.examsybackend.dto.AdminProfileUpdateDTO;
 import lk.ijse.examsybackend.entity.Admin;
 import lk.ijse.examsybackend.repository.AdminRepo;
+import lk.ijse.examsybackend.service.AdminProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class AdminProfileServiceImpl {
+public class AdminProfileServiceImpl implements AdminProfileService {
 
     private final AdminRepo adminRepository;
 
