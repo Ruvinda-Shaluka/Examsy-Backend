@@ -1,11 +1,21 @@
 package lk.ijse.examsybackend.dto;
 
+import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExamSubmitDTO {
-    private String pdfSubmissionUrl; // If it's a PDF exam
+
+    private String pdfSubmissionUrl; // Optional: Only populated if it's a PDF exam
+
+    @Valid // Cascades validation down to the individual answers!
     private List<AnswerSubmitDTO> answers;
 }
