@@ -3,6 +3,7 @@ package lk.ijse.examsybackend.service.impl;
 import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.entity.*;
 import lk.ijse.examsybackend.repository.*;
+import lk.ijse.examsybackend.service.StudentExamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class StudentExamServiceImpl {
+public class StudentExamServiceImpl implements StudentExamService {
 
     private final ExamRepo examRepository;
     private final ExamSubmissionRepo submissionRepository;
@@ -25,6 +26,7 @@ public class StudentExamServiceImpl {
 
     // --- 1. PROCTORING: Track Cheating / Tab Switches ---
     @Transactional
+    @Override
     public void logSecurityViolation(String username, ProctoringDTO dto) {
         Student student = studentRepository.findByUserAccountUsername(username)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
@@ -50,6 +52,7 @@ public class StudentExamServiceImpl {
 
     // --- 2. EXAM START: Get Exam Data for React (Without Correct Answers!) ---
     @Transactional
+    @Override
     public StudentExamViewDTO getExamForStudent(String username, Integer examId) {
         Student student = studentRepository.findByUserAccountUsername(username).orElseThrow();
         Exam exam = examRepository.findById(examId).orElseThrow();
@@ -97,6 +100,7 @@ public class StudentExamServiceImpl {
 
     // --- 3. EXAM SUBMIT: Grade Answers Instantly ---
     @Transactional
+    @Override
     public ExamResultDTO submitExam(String username, Integer examId, ExamSubmitDTO dto) {
         Student student = studentRepository.findByUserAccountUsername(username).orElseThrow();
         Exam exam = examRepository.findById(examId).orElseThrow();
@@ -160,6 +164,7 @@ public class StudentExamServiceImpl {
 
     // --- 4. ACADEMIC VAULT: Fetch published exams for the dashboard ---
     @Transactional(readOnly = true)
+    @Override
     public VaultExamsResponseDTO getVaultExams(String username) {
         Student student = studentRepository.findByUserAccountUsername(username)
                 .orElseThrow(() -> new RuntimeException("Student not found"));

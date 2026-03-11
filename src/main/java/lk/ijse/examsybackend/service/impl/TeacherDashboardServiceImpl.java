@@ -6,6 +6,7 @@ import lk.ijse.examsybackend.entity.Course;
 import lk.ijse.examsybackend.entity.Teacher;
 import lk.ijse.examsybackend.repository.CourseRepo;
 import lk.ijse.examsybackend.repository.TeacherRepo;
+import lk.ijse.examsybackend.service.TeacherDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,12 +18,13 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class TeacherDashboardServiceImpl {
+public class TeacherDashboardServiceImpl implements TeacherDashboardService {
 
     private final CourseRepo courseRepository;
     private final TeacherRepo teacherRepository;
 
     @Transactional(readOnly = true)
+    @Override
     public List<TeacherClassCardDTO> getMyClasses(String username) {
         List<Course> courses = courseRepository.findByTeacherUserAccountUsernameAndIsArchivedFalse(username);
 
@@ -37,6 +39,7 @@ public class TeacherDashboardServiceImpl {
     }
 
     @Transactional
+    @Override
     public void deleteClass(String username, Integer courseId) {
         // Securely fetch the course to ensure this teacher actually owns it!
         Course course = courseRepository.findByIdAndTeacherUserAccountUsername(courseId, username)
@@ -47,6 +50,7 @@ public class TeacherDashboardServiceImpl {
     }
 
     @Transactional
+    @Override
     public TeacherClassCardDTO createClass(String username, CourseCreateDTO dto) {
         Teacher teacher = teacherRepository.findByUserAccountUsername(username)
                 .orElseThrow(() -> new RuntimeException("Teacher profile not found."));

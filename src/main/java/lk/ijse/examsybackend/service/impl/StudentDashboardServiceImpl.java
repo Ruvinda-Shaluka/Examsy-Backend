@@ -11,6 +11,7 @@ import lk.ijse.examsybackend.repository.ClassEnrollmentRepo;
 import lk.ijse.examsybackend.repository.CourseRepo;
 import lk.ijse.examsybackend.repository.ReportRepo;
 import lk.ijse.examsybackend.repository.StudentRepo;
+import lk.ijse.examsybackend.service.StudentDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional; // Make sure this is imported!
@@ -20,15 +21,16 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class StudentDashboardServiceImpl {
+public class StudentDashboardServiceImpl implements StudentDashboardService {
 
     private final ClassEnrollmentRepo enrollmentRepository;
     private final CourseRepo courseRepository;
     private final StudentRepo studentRepository;
     private final ReportRepo reportRepository;
 
-    // 🛡️ The Transactional annotation keeps the DB session open for Lazy loading!
+    // The Transactional annotation keeps the DB session open for Lazy loading!
     @Transactional(readOnly = true)
+    @Override
     public List<StudentClassCardDTO> getMyEnrolledClasses(String username) {
         List<ClassEnrollment> enrollments = enrollmentRepository.findByStudentUserAccountUsername(username);
 
@@ -48,6 +50,7 @@ public class StudentDashboardServiceImpl {
     }
 
     @Transactional
+    @Override
     public void unenrollFromClass(String username, Integer courseId) {
         ClassEnrollment enrollment = enrollmentRepository
                 .findByCourseIdAndStudentUserAccountUsername(courseId, username)
@@ -57,6 +60,7 @@ public class StudentDashboardServiceImpl {
     }
 
     @Transactional
+    @Override
     public StudentClassCardDTO joinClass(String username, JoinClassDTO dto) {
         String link = dto.getInviteLink().trim();
         Integer courseId;
@@ -108,6 +112,7 @@ public class StudentDashboardServiceImpl {
     }
 
     @Transactional
+    @Override
     public void fileReport(String username, ReportCreateDTO dto) {
         // 1. Find the reporting student
         Student student = studentRepository.findByUserAccountUsername(username)

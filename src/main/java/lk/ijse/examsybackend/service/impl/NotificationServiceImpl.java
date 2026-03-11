@@ -7,6 +7,7 @@ import lk.ijse.examsybackend.entity.Teacher;
 import lk.ijse.examsybackend.repository.NotificationRepo;
 import lk.ijse.examsybackend.repository.StudentRepo;
 import lk.ijse.examsybackend.repository.TeacherRepo;
+import lk.ijse.examsybackend.service.NotificationService;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class NotificationServiceImpl {
+public class NotificationServiceImpl implements NotificationService {
 
     private final NotificationRepo notificationRepository;
     private final StudentRepo studentRepository;
@@ -78,6 +79,7 @@ public class NotificationServiceImpl {
     // --- STANDARD READ OPERATIONS ---
 
     @Transactional(readOnly = true)
+    @Override
     public List<NotificationDTO> getMyNotifications(String username) {
         UserPrefs prefs = getUserPreferences(username);
 
@@ -100,6 +102,7 @@ public class NotificationServiceImpl {
     }
 
     @Transactional(readOnly = true)
+    @Override
     public long getUnreadCount(String username) {
         UserPrefs prefs = getUserPreferences(username);
 
@@ -116,6 +119,7 @@ public class NotificationServiceImpl {
     }
 
     @Transactional
+    @Override
     public void markAsRead(Integer notificationId, String username) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new RuntimeException("Notification not found"));
@@ -129,6 +133,7 @@ public class NotificationServiceImpl {
     }
 
     @Transactional
+    @Override
     public void markAllAsRead(String username) {
         List<Notification> unread = notificationRepository.findByUserAccountUsernameOrderByCreatedAtDesc(username)
                 .stream().filter(n -> !n.getIsRead()).collect(Collectors.toList());

@@ -16,6 +16,7 @@ public class AdminProfileServiceImpl implements AdminProfileService {
     private final AdminRepo adminRepository;
 
     @Transactional(readOnly = true)
+    @Override
     public AdminProfileDTO getMyProfile(String username) {
         Admin admin = adminRepository.findByUserAccountUsername(username)
                 .orElseThrow(() -> new RuntimeException("Admin profile not found."));
@@ -29,6 +30,7 @@ public class AdminProfileServiceImpl implements AdminProfileService {
     }
 
     @Transactional
+    @Override
     public AdminProfileDTO updateProfile(String username, AdminProfileUpdateDTO dto) {
         Admin admin = adminRepository.findByUserAccountUsername(username)
                 .orElseThrow(() -> new RuntimeException("Admin profile not found."));

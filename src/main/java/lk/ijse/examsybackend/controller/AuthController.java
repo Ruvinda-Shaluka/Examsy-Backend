@@ -6,6 +6,7 @@ import lk.ijse.examsybackend.dto.AuthDTO;
 import lk.ijse.examsybackend.dto.StudentRegisterDTO;
 import lk.ijse.examsybackend.dto.TeacherRegisterDTO;
 import lk.ijse.examsybackend.service.AuthService;
+import lk.ijse.examsybackend.service.impl.AuthServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;

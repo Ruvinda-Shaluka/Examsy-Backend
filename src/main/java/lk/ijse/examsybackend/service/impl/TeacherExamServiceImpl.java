@@ -5,6 +5,7 @@ import lk.ijse.examsybackend.dto.QuestionDTO;
 import lk.ijse.examsybackend.entity.*;
 import lk.ijse.examsybackend.repository.CourseRepo;
 import lk.ijse.examsybackend.repository.ExamRepo;
+import lk.ijse.examsybackend.service.TeacherExamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,12 +16,13 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-public class TeacherExamServiceImpl {
+public class TeacherExamServiceImpl implements TeacherExamService {
 
     private final ExamRepo examRepository;
     private final CourseRepo courseRepository;
 
     @Transactional
+    @Override
     public void publishExam(String username, ExamPublishDTO dto) {
 
         // 1. Calculate Total Max Score

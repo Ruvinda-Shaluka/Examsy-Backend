@@ -11,6 +11,7 @@ import lk.ijse.examsybackend.entity.UserAccount;
 import lk.ijse.examsybackend.repository.StudentRepo;
 import lk.ijse.examsybackend.repository.TeacherRepo;
 import lk.ijse.examsybackend.repository.UserAccountRepo;
+import lk.ijse.examsybackend.service.AuthService;
 import lk.ijse.examsybackend.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -21,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
-public class AuthServiceImpl {
+public class AuthServiceImpl implements AuthService {
 
     private final UserAccountRepo userAccountRepository;
     private final StudentRepo studentRepository;
@@ -32,6 +33,7 @@ public class AuthServiceImpl {
     /**
      * Authenticates a user (Student, Teacher, or Admin) and returns a JWT token.
      */
+    @Override
     public AuthResponseDTO authenticate(AuthDTO authDTO) {
         String identifier = authDTO.getUsername();
         // 1. Find user from DB
@@ -54,6 +56,7 @@ public class AuthServiceImpl {
      * the UserAccount creation is rolled back automatically.
      */
     @Transactional
+    @Override
     public String registerStudent(StudentRegisterDTO dto) {
         validateNewUser(dto.getUsername(), dto.getEmail());
 
@@ -92,6 +95,7 @@ public class AuthServiceImpl {
      * Registers a new Teacher.
      */
     @Transactional
+    @Override
     public String registerTeacher(TeacherRegisterDTO dto) {
         validateNewUser(dto.getUsername(), dto.getEmail());
 

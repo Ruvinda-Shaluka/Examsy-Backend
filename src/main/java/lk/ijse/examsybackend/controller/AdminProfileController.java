@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lk.ijse.examsybackend.dto.AdminProfileDTO;
 import lk.ijse.examsybackend.dto.AdminProfileUpdateDTO;
 import lk.ijse.examsybackend.service.AdminProfileService;
+import lk.ijse.examsybackend.service.impl.AdminProfileServiceImpl;
 import lk.ijse.examsybackend.util.APIResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

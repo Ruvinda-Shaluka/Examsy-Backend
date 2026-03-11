@@ -3,17 +3,19 @@ package lk.ijse.examsybackend.service.impl;
 import lk.ijse.examsybackend.dto.StudentDTO;
 import lk.ijse.examsybackend.entity.Student;
 import lk.ijse.examsybackend.repository.StudentRepo;
+import lk.ijse.examsybackend.service.StudentProfileService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-public class StudentProfileServiceImpl {
+public class StudentProfileServiceImpl implements StudentProfileService {
 
     private final StudentRepo studentRepository;
     private final ModelMapper modelMapper; // Inject ModelMapper here!
 
+    @Override
     public StudentDTO getMyProfile(String username) {
         Student student = studentRepository.findByUserAccountUsername(username)
                 .orElseThrow(() -> new RuntimeException("Student profile not found"));
@@ -21,6 +23,7 @@ public class StudentProfileServiceImpl {
         return modelMapper.map(student, StudentDTO.class);
     }
 
+    @Override
     public StudentDTO updateMyProfile(String username, StudentDTO updateData) {
         Student student = studentRepository.findByUserAccountUsername(username)
                 .orElseThrow(() -> new RuntimeException("Student profile not found"));

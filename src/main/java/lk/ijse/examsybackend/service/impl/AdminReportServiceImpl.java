@@ -3,6 +3,7 @@ package lk.ijse.examsybackend.service.impl;
 import lk.ijse.examsybackend.dto.AdminReportDTO;
 import lk.ijse.examsybackend.entity.*;
 import lk.ijse.examsybackend.repository.*;
+import lk.ijse.examsybackend.service.AdminReportService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -14,7 +15,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
-public class AdminReportServiceImpl {
+public class AdminReportServiceImpl implements AdminReportService {
 
     private final ReportRepo reportRepository;
     private final CourseRepo courseRepository;
@@ -23,6 +24,7 @@ public class AdminReportServiceImpl {
     private final JavaMailSender mailSender; // Required for emails
 
     @Transactional(readOnly = true)
+    @Override
     public List<AdminReportDTO> getAllPendingReports() {
         return reportRepository.findAll().stream()
                 .filter(r -> r.getStatus().equals("PENDING"))
@@ -43,6 +45,7 @@ public class AdminReportServiceImpl {
     }
 
     @Transactional
+    @Override
     public void terminateClass(Integer reportId) {
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new RuntimeException("Report not found"));
@@ -78,6 +81,7 @@ public class AdminReportServiceImpl {
 
     // Send a direct custom reply to the student
     @Transactional
+    @Override
     public void replyToStudent(Integer reportId, String messageBody) {
         Report report = reportRepository.findById(reportId).orElseThrow();
         Student reporter = report.getReporterStudent();
@@ -96,6 +100,7 @@ public class AdminReportServiceImpl {
     }
 
     @Transactional
+    @Override
     public void terminateTeacher(Integer reportId) {
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new RuntimeException("Report not found"));
@@ -116,6 +121,7 @@ public class AdminReportServiceImpl {
     }
 
     @Transactional
+    @Override
     public void dismissReport(Integer reportId) {
         Report report = reportRepository.findById(reportId).orElseThrow();
         report.setStatus("DISMISSED");
@@ -147,6 +153,7 @@ public class AdminReportServiceImpl {
 
     // Send an official warning to the teacher AND acknowledge the student
     @Transactional
+    @Override
     public void warnTeacher(Integer reportId) {
         Report report = reportRepository.findById(reportId)
                 .orElseThrow(() -> new RuntimeException("Report not found"));
