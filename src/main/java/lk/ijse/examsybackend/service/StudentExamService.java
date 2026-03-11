@@ -157,4 +157,43 @@ public class StudentExamService {
                 .message("Successfully submitted!")
                 .build();
     }
+
+    // --- 4. ACADEMIC VAULT: Fetch published exams for the dashboard ---
+    @Transactional(readOnly = true)
+    public VaultExamsResponseDTO getVaultExams(String username) {
+        // Step A: Verify the student exists
+        Student student = studentRepository.findByUserAccountUsername(username)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        // Step B: Fetch all published exams from the database
+        // (Note: In the future, you can filter this to only show exams for the specific courses the student is enrolled in!)
+        List<Exam> allPublishedExams = examRepository.findAllByStatus("PUBLISHED");
+
+        // Step C: Prepare the two empty lists
+        List<VaultExamItemDTO> upcoming = new java.util.ArrayList<>();
+        List<VaultExamItemDTO> available = new java.util.ArrayList<>();
+
+        // Step D: Sort the exams into the correct lists based on their mode
+        for (Exam exam : allPublishedExams) {
+            VaultExamItemDTO dto = VaultExamItemDTO.builder()
+                    .id(exam.getId())
+                    .title(exam.getTitle())
+                    .examType(exam.getExamType())
+                    .durationMinutes(exam.getDurationMinutes())
+                    .scheduledStartTime(exam.getScheduledStartTime())
+                    .deadlineTime(exam.getDeadlineTime())
+                    .status(exam.getStatus())
+                    .build();
+
+            // Check if it's a REAL-TIME or DEADLINE exam
+            if ("REAL-TIME".equalsIgnoreCase(exam.getExamMode()) || "REAL_TIME".equalsIgnoreCase(exam.getExamMode())) {
+                upcoming.add(dto);
+            } else {
+                available.add(dto);
+            }
+        }
+
+        // Step E: Package them into the final Response DTO
+        return new VaultExamsResponseDTO(upcoming, available);
+    }
 }

@@ -1,10 +1,7 @@
 package lk.ijse.examsybackend.controller;
 
 import jakarta.validation.Valid;
-import lk.ijse.examsybackend.dto.ExamResultDTO;
-import lk.ijse.examsybackend.dto.ExamSubmitDTO;
-import lk.ijse.examsybackend.dto.ProctoringDTO;
-import lk.ijse.examsybackend.dto.StudentExamViewDTO;
+import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.service.StudentExamService;
 import lk.ijse.examsybackend.util.APIResponse;
 import lombok.RequiredArgsConstructor;
@@ -45,5 +42,14 @@ public class StudentExamController {
 
         ExamResultDTO result = studentExamService.submitExam(user.getUsername(), examId, dto);
         return ResponseEntity.ok(new APIResponse<>(200, "Submitted", result));
+    }
+
+    @GetMapping("/vault")
+    public ResponseEntity<APIResponse<VaultExamsResponseDTO>> getStudentVault(
+            @AuthenticationPrincipal UserDetails user) {
+
+        VaultExamsResponseDTO vaultData = studentExamService.getVaultExams(user.getUsername());
+
+        return ResponseEntity.ok(new APIResponse<>(200, "Vault loaded successfully", vaultData));
     }
 }
