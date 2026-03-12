@@ -117,4 +117,21 @@ public class TeacherClassServiceImpl implements TeacherClassService {
 
         announcementRepository.delete(announcement);
     }
+
+    @Transactional
+    @Override
+    public void updateClassAppearance(Integer classId, String username, UpdateAppearanceDTO dto) {
+        Course course = courseRepository.findById(classId)
+                .orElseThrow(() -> new RuntimeException("Class not found"));
+
+        // Security: Ensure only the teacher who created the class can edit it
+        if (!course.getTeacher().getUserAccount().getUsername().equals(username)) {
+            throw new RuntimeException("Unauthorized to modify this class");
+        }
+
+        course.setThemeColorHex(dto.getThemeColorHex());
+        course.setBannerImageUrl(dto.getBannerImageUrl());
+
+        courseRepository.save(course);
+    }
 }

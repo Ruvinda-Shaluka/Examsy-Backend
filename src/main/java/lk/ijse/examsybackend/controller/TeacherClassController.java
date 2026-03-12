@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import lk.ijse.examsybackend.dto.AnnouncementDTO;
 import lk.ijse.examsybackend.dto.ClassStreamDTO;
 import lk.ijse.examsybackend.dto.CreateAnnouncementDTO;
+import lk.ijse.examsybackend.dto.UpdateAppearanceDTO;
 import lk.ijse.examsybackend.service.TeacherClassService;
 import lk.ijse.examsybackend.util.APIResponse;
 import lombok.RequiredArgsConstructor;
@@ -62,4 +63,13 @@ public class TeacherClassController {
         return ResponseEntity.ok(new APIResponse<>(200, "Announcement deleted", null));
     }
 
+    @PatchMapping("/{classId}/appearance")
+    public ResponseEntity<APIResponse<Void>> updateAppearance(
+            @PathVariable Integer classId,
+            @AuthenticationPrincipal UserDetails user,
+            @RequestBody UpdateAppearanceDTO dto) {
+
+        teacherClassService.updateClassAppearance(classId, user.getUsername(), dto);
+        return ResponseEntity.ok(new APIResponse<>(200, "Appearance updated successfully", null));
+    }
 }
