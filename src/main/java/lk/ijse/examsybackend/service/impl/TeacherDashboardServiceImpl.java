@@ -33,7 +33,8 @@ public class TeacherDashboardServiceImpl implements TeacherDashboardService {
                         .id(course.getId())
                         .title(course.getName())
                         .section(course.getSectionName())
-                        .bannerColor(course.getThemeColorHex())
+                        .themeColorHex(course.getThemeColorHex())
+                        .bannerImageUrl(course.getBannerImageUrl())
                         .build()
         ).collect(Collectors.toList());
     }
@@ -76,7 +77,8 @@ public class TeacherDashboardServiceImpl implements TeacherDashboardService {
                 .id(savedCourse.getId())
                 .title(savedCourse.getName())
                 .section(savedCourse.getSectionName())
-                .bannerColor(savedCourse.getThemeColorHex())
+                .themeColorHex(savedCourse.getThemeColorHex())
+                .bannerImageUrl(savedCourse.getBannerImageUrl())
                 .build();
     }
 }

@@ -36,9 +36,7 @@ public class TeacherClassController {
             @AuthenticationPrincipal UserDetails user,
             @RequestBody @Valid CreateAnnouncementDTO dto) {
 
-        // Passes the class ID, the teacher's username, and the secure payload to the service
         AnnouncementDTO newPost = teacherClassService.postAnnouncement(classId, user.getUsername(), dto);
-
         return ResponseEntity.ok(new APIResponse<>(200, "Announcement posted successfully", newPost));
     }
 
@@ -63,7 +61,7 @@ public class TeacherClassController {
         return ResponseEntity.ok(new APIResponse<>(200, "Announcement deleted", null));
     }
 
-    @PatchMapping("/{classId}/appearance")
+    @PutMapping("/{classId}/appearance")
     public ResponseEntity<APIResponse<Void>> updateAppearance(
             @PathVariable Integer classId,
             @AuthenticationPrincipal UserDetails user,
