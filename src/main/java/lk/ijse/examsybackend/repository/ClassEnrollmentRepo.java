@@ -13,4 +13,7 @@ public interface ClassEnrollmentRepo extends JpaRepository<ClassEnrollment,Integ
 
     // Find a specific enrollment to safely delete it
     Optional<ClassEnrollment> findByCourseIdAndStudentUserAccountUsername(Integer courseId, String username);
+
+    List<ClassEnrollment> findByCourseId(Integer courseId);
+
 }

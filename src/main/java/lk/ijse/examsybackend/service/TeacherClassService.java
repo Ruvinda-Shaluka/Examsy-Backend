@@ -11,4 +11,10 @@ public interface TeacherClassService {
 
     @Transactional
     AnnouncementDTO postAnnouncement(Integer classId, String username, CreateAnnouncementDTO dto);
+
+    @Transactional
+    AnnouncementDTO updateAnnouncement(Integer classId, Integer announcementId, String username, CreateAnnouncementDTO dto);
+
+    @Transactional
+    void deleteAnnouncement(Integer classId, Integer announcementId, String username);
 }

@@ -1,9 +1,12 @@
 package lk.ijse.examsybackend.service.impl;
 
 import lk.ijse.examsybackend.dto.NotificationDTO;
+import lk.ijse.examsybackend.entity.ClassEnrollment;
 import lk.ijse.examsybackend.entity.Notification;
 import lk.ijse.examsybackend.entity.Student;
 import lk.ijse.examsybackend.entity.Teacher;
+import lk.ijse.examsybackend.entity.UserAccount;
+import lk.ijse.examsybackend.repository.ClassEnrollmentRepo;
 import lk.ijse.examsybackend.repository.NotificationRepo;
 import lk.ijse.examsybackend.repository.StudentRepo;
 import lk.ijse.examsybackend.repository.TeacherRepo;
@@ -14,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -26,17 +30,17 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepo notificationRepository;
     private final StudentRepo studentRepository;
     private final TeacherRepo teacherRepository;
+    private final ClassEnrollmentRepo classEnrollmentRepository;
 
     @Data
     @Builder
     private static class UserPrefs {
-        private boolean pushEnabled;     // Controls all in-app notifications
-        private boolean emailEnabled;    // Controls external emails
-        private boolean identityEnabled; // Controls Proctoring/Security alerts
+        private boolean pushEnabled;
+        private boolean emailEnabled;
+        private boolean identityEnabled;
     }
 
     private UserPrefs getUserPreferences(String username) {
-        // Check Student
         Optional<Student> studentOpt = studentRepository.findByUserAccountUsername(username);
         if (studentOpt.isPresent()) {
             Student s = studentOpt.get();
@@ -47,7 +51,6 @@ public class NotificationServiceImpl implements NotificationService {
                     .build();
         }
 
-        // Check Teacher (Maps Teacher's notifySecurity to identityEnabled for unified logic)
         Optional<Teacher> teacherOpt = teacherRepository.findByUserAccountUsername(username);
         if (teacherOpt.isPresent()) {
             Teacher t = teacherOpt.get();
@@ -58,39 +61,32 @@ public class NotificationServiceImpl implements NotificationService {
                     .build();
         }
 
-        // Failsafe default
         return UserPrefs.builder().pushEnabled(true).emailEnabled(true).identityEnabled(true).build();
     }
 
     private boolean isNotificationAllowed(Notification n, UserPrefs prefs) {
         String title = n.getTitle() != null ? n.getTitle().toLowerCase() : "";
-
-        // Identify if this is a Proctoring/Security alert
         boolean isProctoringAlert = title.contains("proctoring") || title.contains("warning") || title.contains("security") || title.contains("identity");
 
-        // If it is a proctoring alert, but the user disabled identity notifications, BLOCK IT.
         if (isProctoringAlert && !prefs.isIdentityEnabled()) {
             return false;
         }
 
-        return true; // Pass all other notifications
+        return true;
     }
-
-    // --- STANDARD READ OPERATIONS ---
 
     @Transactional(readOnly = true)
     @Override
     public List<NotificationDTO> getMyNotifications(String username) {
         UserPrefs prefs = getUserPreferences(username);
 
-        // GATEKEEPER: If push is completely off, return empty list instantly!
         if (!prefs.isPushEnabled()) {
             return Collections.emptyList();
         }
 
         return notificationRepository.findByUserAccountUsernameOrderByCreatedAtDesc(username)
                 .stream()
-                .filter(n -> isNotificationAllowed(n, prefs)) // 🟢 Apply Proctoring filter
+                .filter(n -> isNotificationAllowed(n, prefs))
                 .map(n -> NotificationDTO.builder()
                         .id(n.getId())
                         .title(n.getTitle())
@@ -106,7 +102,6 @@ public class NotificationServiceImpl implements NotificationService {
     public long getUnreadCount(String username) {
         UserPrefs prefs = getUserPreferences(username);
 
-        // GATEKEEPER: If push is completely off, unread count is 0!
         if (!prefs.isPushEnabled()) {
             return 0;
         }
@@ -114,7 +109,7 @@ public class NotificationServiceImpl implements NotificationService {
         return notificationRepository.findByUserAccountUsernameOrderByCreatedAtDesc(username)
                 .stream()
                 .filter(n -> !n.getIsRead())
-                .filter(n -> isNotificationAllowed(n, prefs)) // 🟢 Apply Proctoring filter
+                .filter(n -> isNotificationAllowed(n, prefs))
                 .count();
     }
 
@@ -140,5 +135,35 @@ public class NotificationServiceImpl implements NotificationService {
 
         unread.forEach(n -> n.setIsRead(true));
         notificationRepository.saveAll(unread);
+    }
+
+    // The Fan-Out Method! Call this from your TeacherClassService
+    @Transactional
+    @Override
+    public void dispatchAnnouncementNotifications(Integer courseId, String classCode, String authorName, String content) {
+        // 1. Get all students enrolled in this specific class
+        List<ClassEnrollment> enrollments = classEnrollmentRepository.findByCourseId(courseId);
+        List<Notification> notificationsToSave = new ArrayList<>();
+
+        // 2. Loop through them and generate a notification
+        for (ClassEnrollment enrollment : enrollments) {
+            UserAccount studentAccount = enrollment.getStudent().getUserAccount();
+
+            // 3. Optional: Verify student wants push notifications before saving!
+            UserPrefs prefs = getUserPreferences(studentAccount.getUsername());
+            if (prefs.isPushEnabled()) {
+                notificationsToSave.add(Notification.builder()
+                        .userAccount(studentAccount)
+                        .title("Announcement: " + classCode)
+                        .message(authorName + " posted: " + content)
+                        .isRead(false) // This inherently acts as your 'unread option'!
+                        .build());
+            }
+        }
+
+        // 4. Save them all
+        if (!notificationsToSave.isEmpty()) {
+            notificationRepository.saveAll(notificationsToSave);
+        }
     }
 }

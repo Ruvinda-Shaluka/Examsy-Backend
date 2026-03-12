@@ -40,4 +40,26 @@ public class TeacherClassController {
 
         return ResponseEntity.ok(new APIResponse<>(200, "Announcement posted successfully", newPost));
     }
+
+    @PutMapping("/{classId}/announcements/{announcementId}")
+    public ResponseEntity<APIResponse<AnnouncementDTO>> updateAnnouncement(
+            @PathVariable Integer classId,
+            @PathVariable Integer announcementId,
+            @AuthenticationPrincipal UserDetails user,
+            @RequestBody @Valid CreateAnnouncementDTO dto) {
+
+        AnnouncementDTO updatedPost = teacherClassService.updateAnnouncement(classId, announcementId, user.getUsername(), dto);
+        return ResponseEntity.ok(new APIResponse<>(200, "Announcement updated", updatedPost));
+    }
+
+    @DeleteMapping("/{classId}/announcements/{announcementId}")
+    public ResponseEntity<APIResponse<Void>> deleteAnnouncement(
+            @PathVariable Integer classId,
+            @PathVariable Integer announcementId,
+            @AuthenticationPrincipal UserDetails user) {
+
+        teacherClassService.deleteAnnouncement(classId, announcementId, user.getUsername());
+        return ResponseEntity.ok(new APIResponse<>(200, "Announcement deleted", null));
+    }
+
 }
