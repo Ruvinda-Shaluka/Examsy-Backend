@@ -20,8 +20,6 @@ public class TeacherClassServiceImpl implements TeacherClassService {
     private final CourseRepo courseRepository;
     private final ClassAnnouncementRepo announcementRepository;
     private final UserAccountRepo userAccountRepository;
-
-    //INJECT THE NOTIFICATION SERVICE
     private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
@@ -41,7 +39,6 @@ public class TeacherClassServiceImpl implements TeacherClassService {
 
         return ClassStreamDTO.builder()
                 .classCode(course.getClassCode())
-                // 🟢 MAP REAL DATA HERE
                 .title(course.getName())
                 .section(course.getSectionName())
                 .themeColorHex(course.getThemeColorHex())
