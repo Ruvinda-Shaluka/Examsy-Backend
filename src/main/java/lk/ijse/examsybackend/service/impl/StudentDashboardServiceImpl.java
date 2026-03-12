@@ -40,7 +40,6 @@ public class StudentDashboardServiceImpl implements StudentDashboardService {
                     .id(course.getId())
                     .title(course.getName())
                     .section(course.getSectionName())
-                    // 🟢 FIXED: Map the two new fields here
                     .themeColorHex(course.getThemeColorHex())
                     .bannerImageUrl(course.getBannerImageUrl())
                     .teacher(course.getTeacher() != null ? course.getTeacher().getFullName() : "Unknown Instructor")
@@ -105,7 +104,6 @@ public class StudentDashboardServiceImpl implements StudentDashboardService {
                 .id(course.getId())
                 .title(course.getName())
                 .section(course.getSectionName())
-                // 🟢 FIXED: Ensure the newly joined class card returns the image/color immediately
                 .themeColorHex(course.getThemeColorHex())
                 .bannerImageUrl(course.getBannerImageUrl())
                 .teacher(course.getTeacher() != null ? course.getTeacher().getFullName() : "Unknown Instructor")
