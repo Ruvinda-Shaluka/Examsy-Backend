@@ -14,7 +14,7 @@ import lk.ijse.examsybackend.repository.StudentRepo;
 import lk.ijse.examsybackend.service.StudentDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // Make sure this is imported!
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,7 +28,6 @@ public class StudentDashboardServiceImpl implements StudentDashboardService {
     private final StudentRepo studentRepository;
     private final ReportRepo reportRepository;
 
-    // The Transactional annotation keeps the DB session open for Lazy loading!
     @Transactional(readOnly = true)
     @Override
     public List<StudentClassCardDTO> getMyEnrolledClasses(String username) {
@@ -37,12 +36,13 @@ public class StudentDashboardServiceImpl implements StudentDashboardService {
         return enrollments.stream().map(enrollment -> {
             Course course = enrollment.getCourse();
 
-            // Using the Builder pattern is much safer here than ModelMapper for complex nested objects! and also compile time safety.
             return StudentClassCardDTO.builder()
                     .id(course.getId())
                     .title(course.getName())
                     .section(course.getSectionName())
-                    .bannerColor(course.getThemeColorHex())
+                    // 🟢 FIXED: Map the two new fields here
+                    .themeColorHex(course.getThemeColorHex())
+                    .bannerImageUrl(course.getBannerImageUrl())
                     .teacher(course.getTeacher() != null ? course.getTeacher().getFullName() : "Unknown Instructor")
                     .build();
 
@@ -65,11 +65,11 @@ public class StudentDashboardServiceImpl implements StudentDashboardService {
         String link = dto.getInviteLink().trim();
         Integer courseId;
 
-        // 1. Safely extract the Course ID from "https://examsy.com/join/6/req-w52tnt"
+        // 1. Safely extract the Course ID
         try {
             String[] parts = link.split("/join/");
             if (parts.length < 2) throw new Exception();
-            String idPart = parts[1].split("/")[0]; // Grabs the "6"
+            String idPart = parts[1].split("/")[0];
             courseId = Integer.parseInt(idPart);
         } catch (Exception e) {
             throw new RuntimeException("Invalid invite link format. Please check the link and try again.");
@@ -96,17 +96,18 @@ public class StudentDashboardServiceImpl implements StudentDashboardService {
         ClassEnrollment enrollment = ClassEnrollment.builder()
                 .course(course)
                 .student(student)
-                // enrolledAt is handled automatically by @CreationTimestamp
                 .build();
 
         enrollmentRepository.save(enrollment);
 
-        // 6. Return the mapped DTO so React can instantly show the new card
+        // 6. Return the mapped DTO
         return StudentClassCardDTO.builder()
                 .id(course.getId())
                 .title(course.getName())
                 .section(course.getSectionName())
-                .bannerColor(course.getThemeColorHex())
+                // 🟢 FIXED: Ensure the newly joined class card returns the image/color immediately
+                .themeColorHex(course.getThemeColorHex())
+                .bannerImageUrl(course.getBannerImageUrl())
                 .teacher(course.getTeacher() != null ? course.getTeacher().getFullName() : "Unknown Instructor")
                 .build();
     }
@@ -114,22 +115,19 @@ public class StudentDashboardServiceImpl implements StudentDashboardService {
     @Transactional
     @Override
     public void fileReport(String username, ReportCreateDTO dto) {
-        // 1. Find the reporting student
         Student student = studentRepository.findByUserAccountUsername(username)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        // 2. Find the target course
         Course course = courseRepository.findById(dto.getTargetCourseId())
                 .orElseThrow(() -> new RuntimeException("Course not found"));
 
-        // 3. Map and save the Report
         Report report = Report.builder()
                 .reporterStudent(student)
                 .targetCourse(course)
                 .category(dto.getCategory())
                 .description(dto.getDescription())
                 .priorityLevel(dto.getPriorityLevel())
-                .status("PENDING") // Default status
+                .status("PENDING")
                 .build();
 
         reportRepository.save(report);
