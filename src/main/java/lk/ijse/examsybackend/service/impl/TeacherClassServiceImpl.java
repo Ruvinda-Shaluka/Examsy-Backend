@@ -41,10 +41,14 @@ public class TeacherClassServiceImpl implements TeacherClassService {
 
         return ClassStreamDTO.builder()
                 .classCode(course.getClassCode())
+                // 🟢 MAP REAL DATA HERE
+                .title(course.getName())
+                .section(course.getSectionName())
+                .themeColorHex(course.getThemeColorHex())
+                .bannerImageUrl(course.getBannerImageUrl())
                 .announcements(announcementDTOs)
                 .build();
     }
-
     @Transactional
     @Override
     public AnnouncementDTO postAnnouncement(Integer classId, String username, CreateAnnouncementDTO dto) {

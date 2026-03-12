@@ -12,6 +12,10 @@ import java.util.List;
 @Data
 @Builder
 public class ClassStreamDTO {
-    private String classCode; // To display on the left sidebar
+    private String classCode;
+    private String title;
+    private String section;
+    private String themeColorHex;
+    private String bannerImageUrl;
     private List<AnnouncementDTO> announcements;
 }
