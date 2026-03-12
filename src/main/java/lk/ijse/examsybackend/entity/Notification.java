@@ -30,4 +30,7 @@ public class Notification {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "course_id", nullable = true)
+    private Integer courseId;
 }

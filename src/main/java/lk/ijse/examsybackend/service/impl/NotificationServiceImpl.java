@@ -93,6 +93,8 @@ public class NotificationServiceImpl implements NotificationService {
                         .message(n.getMessage())
                         .isRead(n.getIsRead())
                         .createdAt(n.getCreatedAt())
+                        // 🟢 MAP THE COURSE ID FOR REACT HERE
+                        .courseId(n.getCourseId())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -137,31 +139,28 @@ public class NotificationServiceImpl implements NotificationService {
         notificationRepository.saveAll(unread);
     }
 
-    // The Fan-Out Method! Call this from your TeacherClassService
     @Transactional
     @Override
     public void dispatchAnnouncementNotifications(Integer courseId, String classCode, String authorName, String content) {
-        // 1. Get all students enrolled in this specific class
         List<ClassEnrollment> enrollments = classEnrollmentRepository.findByCourseId(courseId);
         List<Notification> notificationsToSave = new ArrayList<>();
 
-        // 2. Loop through them and generate a notification
         for (ClassEnrollment enrollment : enrollments) {
             UserAccount studentAccount = enrollment.getStudent().getUserAccount();
-
-            // 3. Optional: Verify student wants push notifications before saving!
             UserPrefs prefs = getUserPreferences(studentAccount.getUsername());
+
             if (prefs.isPushEnabled()) {
                 notificationsToSave.add(Notification.builder()
                         .userAccount(studentAccount)
                         .title("Announcement: " + classCode)
                         .message(authorName + " posted: " + content)
-                        .isRead(false) // This inherently acts as your 'unread option'!
+                        .isRead(false)
+                        // 🟢 SAVE THE COURSE ID TO THE DATABASE
+                        .courseId(courseId)
                         .build());
             }
         }
 
-        // 4. Save them all
         if (!notificationsToSave.isEmpty()) {
             notificationRepository.saveAll(notificationsToSave);
         }
