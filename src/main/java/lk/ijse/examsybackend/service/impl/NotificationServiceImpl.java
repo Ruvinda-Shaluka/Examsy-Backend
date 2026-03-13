@@ -93,7 +93,6 @@ public class NotificationServiceImpl implements NotificationService {
                         .message(n.getMessage())
                         .isRead(n.getIsRead())
                         .createdAt(n.getCreatedAt())
-                        // 🟢 MAP THE COURSE ID FOR REACT HERE
                         .courseId(n.getCourseId())
                         .build())
                 .collect(Collectors.toList());
@@ -155,7 +154,6 @@ public class NotificationServiceImpl implements NotificationService {
                         .title("Announcement: " + classCode)
                         .message(authorName + " posted: " + content)
                         .isRead(false)
-                        // 🟢 SAVE THE COURSE ID TO THE DATABASE
                         .courseId(courseId)
                         .build());
             }
