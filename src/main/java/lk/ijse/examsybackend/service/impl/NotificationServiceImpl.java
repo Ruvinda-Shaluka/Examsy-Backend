@@ -1,5 +1,7 @@
 package lk.ijse.examsybackend.service.impl;
 
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import lk.ijse.examsybackend.dto.NotificationDTO;
 import lk.ijse.examsybackend.entity.ClassEnrollment;
 import lk.ijse.examsybackend.entity.Notification;
@@ -14,6 +16,8 @@ import lk.ijse.examsybackend.service.NotificationService;
 import lombok.Builder;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +35,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final StudentRepo studentRepository;
     private final TeacherRepo teacherRepository;
     private final ClassEnrollmentRepo classEnrollmentRepository;
+    private final JavaMailSender mailSender;
 
     @Data
     @Builder
@@ -102,10 +107,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public long getUnreadCount(String username) {
         UserPrefs prefs = getUserPreferences(username);
-
-        if (!prefs.isPushEnabled()) {
-            return 0;
-        }
+        if (!prefs.isPushEnabled()) return 0;
 
         return notificationRepository.findByUserAccountUsernameOrderByCreatedAtDesc(username)
                 .stream()
@@ -140,27 +142,61 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Transactional
     @Override
-    public void dispatchAnnouncementNotifications(Integer courseId, String classCode, String authorName, String content) {
+    public void dispatchAnnouncementNotifications(Integer courseId, String courseName, String teacherName, String content, boolean isUpdate) {
         List<ClassEnrollment> enrollments = classEnrollmentRepository.findByCourseId(courseId);
         List<Notification> notificationsToSave = new ArrayList<>();
+
+        String actionWord = isUpdate ? "updated an announcement" : "posted a new announcement";
+        String notificationTitle = (isUpdate ? "Update: " : "Announcement: ") + courseName;
 
         for (ClassEnrollment enrollment : enrollments) {
             UserAccount studentAccount = enrollment.getStudent().getUserAccount();
             UserPrefs prefs = getUserPreferences(studentAccount.getUsername());
 
+            // 1. Check Push Notifications
             if (prefs.isPushEnabled()) {
                 notificationsToSave.add(Notification.builder()
                         .userAccount(studentAccount)
-                        .title("Announcement: " + classCode)
-                        .message(authorName + " posted: " + content)
+                        .title(notificationTitle)
+                        .message(teacherName + " " + actionWord + ": " + content)
                         .isRead(false)
                         .courseId(courseId)
                         .build());
+            }
+
+            // 2. Check Email Notifications
+            if (prefs.isEmailEnabled() && studentAccount.getEmail() != null) {
+                sendAnnouncementEmail(studentAccount.getEmail(), teacherName, courseName, content, isUpdate);
             }
         }
 
         if (!notificationsToSave.isEmpty()) {
             notificationRepository.saveAll(notificationsToSave);
+        }
+    }
+
+    private void sendAnnouncementEmail(String toEmail, String teacherName, String courseName, String content, boolean isUpdate) {
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+            // SPOOFING THE NAME: Shows up as "Shaluka Perera (Examsy)" but sends from noreply
+            helper.setFrom(new InternetAddress("noreply@examsy.com", teacherName + " (Examsy)"));
+            helper.setTo(toEmail);
+
+            String subject = isUpdate ? "Updated Announcement in " + courseName : "New Announcement in " + courseName;
+            helper.setSubject(subject);
+
+            // Basic text formatting. You can upgrade this to helper.setText("<html>...</html>", true) later if you want HTML emails!
+            String body = "Class: " + courseName + "\n" +
+                    "Instructor: " + teacherName + "\n\n" +
+                    "Message:\n" + content + "\n\n" +
+                    "Log in to Examsy to view the full class stream.";
+
+            helper.setText(body);
+            mailSender.send(message);
+        } catch (Exception e) {
+            System.err.println("Failed to send announcement email to " + toEmail + ": " + e.getMessage());
         }
     }
 }

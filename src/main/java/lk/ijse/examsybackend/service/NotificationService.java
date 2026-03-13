@@ -18,7 +18,6 @@ public interface NotificationService {
     @Transactional
     void markAllAsRead(String username);
 
-    // 🟢 NEW: The Fan-Out Method! Call this from your TeacherClassService
     @Transactional
-    void dispatchAnnouncementNotifications(Integer courseId, String classCode, String authorName, String content);
+    void dispatchAnnouncementNotifications(Integer courseId, String courseName, String teacherName, String content, boolean isUpdate);
 }

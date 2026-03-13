@@ -46,13 +46,14 @@ public class TeacherClassServiceImpl implements TeacherClassService {
                 .announcements(announcementDTOs)
                 .build();
     }
+
+
     @Transactional
     @Override
     public AnnouncementDTO postAnnouncement(Integer classId, String username, CreateAnnouncementDTO dto) {
         Course course = courseRepository.findById(classId).orElseThrow();
         UserAccount author = userAccountRepository.findByUsername(username).orElseThrow();
 
-        // 1. Save the public broadcast announcement to the Stream
         ClassAnnouncement announcement = ClassAnnouncement.builder()
                 .course(course)
                 .author(author)
@@ -61,13 +62,12 @@ public class TeacherClassServiceImpl implements TeacherClassService {
 
         announcement = announcementRepository.save(announcement);
 
-        // TRIGGER THE FAN-OUT NOTIFICATIONS
-        // This offloads all the looping and preference-checking to the NotificationService!
         notificationService.dispatchAnnouncementNotifications(
                 course.getId(),
-                course.getClassCode(),
-                author.getUsername(),
-                dto.getContent()
+                course.getName(), // Changed to Class Name for better emails
+                course.getTeacher().getFullName(), // Use real Teacher Name!
+                dto.getContent(),
+                false // isUpdate = false
         );
 
         return AnnouncementDTO.builder()
@@ -84,7 +84,6 @@ public class TeacherClassServiceImpl implements TeacherClassService {
         ClassAnnouncement announcement = announcementRepository.findById(announcementId)
                 .orElseThrow(() -> new RuntimeException("Announcement not found"));
 
-        // Security checks
         if (!announcement.getCourse().getId().equals(classId)) {
             throw new RuntimeException("Announcement does not belong to this class");
         }
@@ -95,6 +94,14 @@ public class TeacherClassServiceImpl implements TeacherClassService {
         announcement.setContent(dto.getContent());
         announcement = announcementRepository.save(announcement);
 
+        notificationService.dispatchAnnouncementNotifications(
+                announcement.getCourse().getId(),
+                announcement.getCourse().getName(),
+                announcement.getCourse().getTeacher().getFullName(), // Real Teacher Name
+                dto.getContent(),
+                true // isUpdate = true
+        );
+
         return AnnouncementDTO.builder()
                 .id(announcement.getId())
                 .authorName(announcement.getAuthor().getUsername())
@@ -102,6 +109,7 @@ public class TeacherClassServiceImpl implements TeacherClassService {
                 .formattedDate(announcement.getCreatedAt().format(DateTimeFormatter.ofPattern("MMM dd, yyyy • hh:mm a")) + " (Edited)")
                 .build();
     }
+
 
     @Transactional
     @Override
