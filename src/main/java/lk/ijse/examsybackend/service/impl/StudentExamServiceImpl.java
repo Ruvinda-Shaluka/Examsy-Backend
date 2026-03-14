@@ -165,16 +165,17 @@ public class StudentExamServiceImpl implements StudentExamService {
     // --- 4. ACADEMIC VAULT: Fetch published exams for the dashboard ---
     @Transactional(readOnly = true)
     @Override
-    public VaultExamsResponseDTO getVaultExams(String username) {
+    public VaultExamsResponseDTO getVaultExams(String username, Integer classId) {
         Student student = studentRepository.findByUserAccountUsername(username)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        List<Exam> allPublishedExams = examRepository.findAllByStatus("PUBLISHED");
+        // Fetch ONLY exams for this specific class!
+        List<Exam> classExams = examRepository.findByCourseIdAndStatus(classId, "PUBLISHED");
 
         List<VaultExamItemDTO> upcoming = new java.util.ArrayList<>();
         List<VaultExamItemDTO> available = new java.util.ArrayList<>();
 
-        for (Exam exam : allPublishedExams) {
+        for (Exam exam : classExams) {
 
             String currentStatus = "NOT_STARTED";
             java.util.Optional<ExamSubmission> subOpt = submissionRepository.findByExamIdAndStudentId(exam.getId(), student.getId());

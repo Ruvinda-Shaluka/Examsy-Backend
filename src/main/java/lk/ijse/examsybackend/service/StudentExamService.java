@@ -18,5 +18,5 @@ public interface StudentExamService {
 
     // --- 4. ACADEMIC VAULT: Fetch published exams for the dashboard ---
     @Transactional(readOnly = true)
-    VaultExamsResponseDTO getVaultExams(String username);
+    VaultExamsResponseDTO getVaultExams(String username, Integer classId);
 }

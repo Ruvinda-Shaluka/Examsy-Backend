@@ -44,11 +44,12 @@ public class StudentExamController {
         return ResponseEntity.ok(new APIResponse<>(200, "Submitted", result));
     }
 
-    @GetMapping("/vault")
+    @GetMapping("/vault/{classId}")
     public ResponseEntity<APIResponse<VaultExamsResponseDTO>> getStudentVault(
+            @PathVariable Integer classId,
             @AuthenticationPrincipal UserDetails user) {
 
-        VaultExamsResponseDTO vaultData = studentExamService.getVaultExams(user.getUsername());
+        VaultExamsResponseDTO vaultData = studentExamService.getVaultExams(user.getUsername(), classId);
 
         return ResponseEntity.ok(new APIResponse<>(200, "Vault loaded successfully", vaultData));
     }

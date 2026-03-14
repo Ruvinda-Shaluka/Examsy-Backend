@@ -10,4 +10,6 @@ public interface ExamRepo extends JpaRepository<Exam,Integer> {
 
     // Change it from OrderByCreatedAtDesc to OrderByIdDesc
     List<Exam> findByCourseIdOrderByIdDesc(Integer classId);
+
+    List<Exam> findByCourseIdAndStatus(Integer courseId, String status);
 }
