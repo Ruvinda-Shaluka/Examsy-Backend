@@ -8,5 +8,6 @@ import java.util.List;
 public interface ExamRepo extends JpaRepository<Exam,Integer> {
     List<Exam> findAllByStatus(String published);
 
-    List<Exam> findByCourseIdOrderByCreatedAtDesc(Integer courseId);
+    // Change it from OrderByCreatedAtDesc to OrderByIdDesc
+    List<Exam> findByCourseIdOrderByIdDesc(Integer classId);
 }

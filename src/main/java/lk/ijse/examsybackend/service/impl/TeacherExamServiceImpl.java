@@ -96,7 +96,7 @@ public class TeacherExamServiceImpl implements TeacherExamService {
                 .orElseThrow(() -> new RuntimeException("Class not found or unauthorized"));
 
         // Fetch exams linked to this course
-        List<Exam> exams = examRepository.findByCourseIdOrderByCreatedAtDesc(classId);
+        List<Exam> exams = examRepository.findByCourseIdOrderByIdDesc(classId);
 
         return exams.stream().map(e -> ExamSummaryDTO.builder()
                 .id(e.getId())

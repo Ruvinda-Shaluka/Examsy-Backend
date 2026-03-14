@@ -176,7 +176,6 @@ public class StudentExamServiceImpl implements StudentExamService {
 
         for (Exam exam : allPublishedExams) {
 
-            // 🟢 CHECK SUBMISSION STATUS FOR THIS SPECIFIC STUDENT
             String currentStatus = "NOT_STARTED";
             java.util.Optional<ExamSubmission> subOpt = submissionRepository.findByExamIdAndStudentId(exam.getId(), student.getId());
             if (subOpt.isPresent()) {
@@ -191,7 +190,7 @@ public class StudentExamServiceImpl implements StudentExamService {
                     .scheduledStartTime(exam.getScheduledStartTime())
                     .deadlineTime(exam.getDeadlineTime())
                     .status(exam.getStatus())
-                    .studentStatus(currentStatus) // 🟢 Map the status to the DTO
+                    .studentStatus(currentStatus)
                     .build();
 
             if ("REAL-TIME".equalsIgnoreCase(exam.getExamMode()) || "REAL_TIME".equalsIgnoreCase(exam.getExamMode())) {
