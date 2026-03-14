@@ -3,6 +3,7 @@ package lk.ijse.examsybackend.controller;
 import jakarta.validation.Valid;
 import lk.ijse.examsybackend.dto.ExamPublishDTO;
 import lk.ijse.examsybackend.dto.ExamSummaryDTO;
+import lk.ijse.examsybackend.dto.UpdateExamDeadlineDTO;
 import lk.ijse.examsybackend.service.TeacherExamService;
 import lk.ijse.examsybackend.util.APIResponse;
 import lombok.RequiredArgsConstructor;
@@ -51,5 +52,15 @@ public class TeacherExamController {
 
         teacherExamService.deleteExam(user.getUsername(), examId);
         return ResponseEntity.ok(new APIResponse<>(200, "Exam deleted successfully", null));
+    }
+
+    @PatchMapping("/{examId}/deadline")
+    public ResponseEntity<APIResponse<Void>> updateExamDeadline(
+            @PathVariable Integer examId,
+            @AuthenticationPrincipal UserDetails user,
+            @RequestBody UpdateExamDeadlineDTO dto) {
+
+        teacherExamService.updateExamDeadline(user.getUsername(), examId, dto.getNewDeadline());
+        return ResponseEntity.ok(new APIResponse<>(200, "Deadline updated successfully", null));
     }
 }

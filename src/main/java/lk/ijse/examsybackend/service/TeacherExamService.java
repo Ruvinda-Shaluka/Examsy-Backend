@@ -15,4 +15,7 @@ public interface TeacherExamService {
 
     @Transactional
     void deleteExam(String username, Integer examId);
+
+    @Transactional
+    void updateExamDeadline(String username, Integer examId, java.time.LocalDateTime newDeadline);
 }

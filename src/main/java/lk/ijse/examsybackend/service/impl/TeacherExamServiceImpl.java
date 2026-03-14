@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -122,5 +123,19 @@ public class TeacherExamServiceImpl implements TeacherExamService {
 
         // Because of JPA Cascading, deleting the exam will auto-delete its questions and options!
         examRepository.delete(exam);
+    }
+
+    @Transactional
+    @Override
+    public void updateExamDeadline(String username, Integer examId, LocalDateTime newDeadline) {
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new RuntimeException("Exam not found"));
+
+        if (!exam.getCourse().getTeacher().getUserAccount().getUsername().equals(username)) {
+            throw new RuntimeException("Unauthorized to update this exam");
+        }
+
+        exam.setDeadlineTime(newDeadline);
+        examRepository.save(exam);
     }
 }
