@@ -54,8 +54,7 @@ public class TeacherExamController {
         return ResponseEntity.ok(new APIResponse<>(200, "Exam deleted successfully", null));
     }
 
-    // 🟢 UPDATED ENDPOINT
-    @PatchMapping("/{examId}/timing")
+    @PutMapping("/{examId}/timing")
     public ResponseEntity<APIResponse<Void>> updateExamTiming(
             @PathVariable Integer examId,
             @AuthenticationPrincipal UserDetails user,
