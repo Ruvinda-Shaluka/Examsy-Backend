@@ -10,5 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Data
 public class UpdateExamDeadlineDTO {
-    private LocalDateTime newDeadline;
+    private LocalDateTime scheduledStartTime;
+    private LocalDateTime deadlineTime;
+    private Integer durationMinutes;
 }

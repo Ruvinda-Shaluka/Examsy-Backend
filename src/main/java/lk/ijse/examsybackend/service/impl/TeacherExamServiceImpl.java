@@ -3,6 +3,7 @@ package lk.ijse.examsybackend.service.impl;
 import lk.ijse.examsybackend.dto.ExamPublishDTO;
 import lk.ijse.examsybackend.dto.ExamSummaryDTO;
 import lk.ijse.examsybackend.dto.QuestionDTO;
+import lk.ijse.examsybackend.dto.UpdateExamDeadlineDTO;
 import lk.ijse.examsybackend.entity.*;
 import lk.ijse.examsybackend.repository.CourseRepo;
 import lk.ijse.examsybackend.repository.ExamRepo;
@@ -12,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -104,6 +104,7 @@ public class TeacherExamServiceImpl implements TeacherExamService {
                 .title(e.getTitle())
                 .examType(e.getExamType())
                 .status(e.getStatus())
+                .scheduledStartTime(e.getScheduledStartTime())
                 .deadlineTime(e.getDeadlineTime())
                 .durationMinutes(e.getDurationMinutes())
                 .maxScore(e.getMaxScore())
@@ -127,7 +128,7 @@ public class TeacherExamServiceImpl implements TeacherExamService {
 
     @Transactional
     @Override
-    public void updateExamDeadline(String username, Integer examId, LocalDateTime newDeadline) {
+    public void updateExamTiming(String username, Integer examId, UpdateExamDeadlineDTO dto) {
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new RuntimeException("Exam not found"));
 
@@ -135,7 +136,11 @@ public class TeacherExamServiceImpl implements TeacherExamService {
             throw new RuntimeException("Unauthorized to update this exam");
         }
 
-        exam.setDeadlineTime(newDeadline);
+        // Update all three timing properties
+        exam.setScheduledStartTime(dto.getScheduledStartTime());
+        exam.setDeadlineTime(dto.getDeadlineTime());
+        exam.setDurationMinutes(dto.getDurationMinutes());
+
         examRepository.save(exam);
     }
 }

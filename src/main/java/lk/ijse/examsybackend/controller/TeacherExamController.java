@@ -54,13 +54,15 @@ public class TeacherExamController {
         return ResponseEntity.ok(new APIResponse<>(200, "Exam deleted successfully", null));
     }
 
-    @PatchMapping("/{examId}/deadline")
-    public ResponseEntity<APIResponse<Void>> updateExamDeadline(
+    // 🟢 UPDATED ENDPOINT
+    @PatchMapping("/{examId}/timing")
+    public ResponseEntity<APIResponse<Void>> updateExamTiming(
             @PathVariable Integer examId,
             @AuthenticationPrincipal UserDetails user,
             @RequestBody UpdateExamDeadlineDTO dto) {
 
-        teacherExamService.updateExamDeadline(user.getUsername(), examId, dto.getNewDeadline());
-        return ResponseEntity.ok(new APIResponse<>(200, "Deadline updated successfully", null));
+        teacherExamService.updateExamTiming(user.getUsername(), examId, dto);
+        return ResponseEntity.ok(new APIResponse<>(200, "Exam timings updated successfully", null));
     }
+
 }

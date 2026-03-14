@@ -2,6 +2,7 @@ package lk.ijse.examsybackend.service;
 
 import lk.ijse.examsybackend.dto.ExamPublishDTO;
 import lk.ijse.examsybackend.dto.ExamSummaryDTO;
+import lk.ijse.examsybackend.dto.UpdateExamDeadlineDTO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -17,5 +18,5 @@ public interface TeacherExamService {
     void deleteExam(String username, Integer examId);
 
     @Transactional
-    void updateExamDeadline(String username, Integer examId, java.time.LocalDateTime newDeadline);
+    void updateExamTiming(String username, Integer examId, UpdateExamDeadlineDTO dto);
 }
