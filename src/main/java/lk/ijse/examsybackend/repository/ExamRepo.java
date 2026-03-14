@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface ExamRepo extends JpaRepository<Exam,Integer> {
     List<Exam> findAllByStatus(String published);
+
+    List<Exam> findByCourseIdOrderByCreatedAtDesc(Integer courseId);
 }

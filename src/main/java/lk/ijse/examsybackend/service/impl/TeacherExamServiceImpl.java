@@ -1,6 +1,7 @@
 package lk.ijse.examsybackend.service.impl;
 
 import lk.ijse.examsybackend.dto.ExamPublishDTO;
+import lk.ijse.examsybackend.dto.ExamSummaryDTO;
 import lk.ijse.examsybackend.dto.QuestionDTO;
 import lk.ijse.examsybackend.entity.*;
 import lk.ijse.examsybackend.repository.CourseRepo;
@@ -85,5 +86,41 @@ public class TeacherExamServiceImpl implements TeacherExamService {
             // Save everything cascaded!
             examRepository.save(exam);
         }
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<ExamSummaryDTO> getClassExams(String username, Integer classId) {
+        // Security check
+        Course course = courseRepository.findByIdAndTeacherUserAccountUsername(classId, username)
+                .orElseThrow(() -> new RuntimeException("Class not found or unauthorized"));
+
+        // Fetch exams linked to this course
+        List<Exam> exams = examRepository.findByCourseIdOrderByCreatedAtDesc(classId);
+
+        return exams.stream().map(e -> ExamSummaryDTO.builder()
+                .id(e.getId())
+                .title(e.getTitle())
+                .examType(e.getExamType())
+                .status(e.getStatus())
+                .deadlineTime(e.getDeadlineTime())
+                .durationMinutes(e.getDurationMinutes())
+                .maxScore(e.getMaxScore())
+                .build()
+        ).toList();
+    }
+
+    @Transactional
+    @Override
+    public void deleteExam(String username, Integer examId) {
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new RuntimeException("Exam not found"));
+
+        if (!exam.getCourse().getTeacher().getUserAccount().getUsername().equals(username)) {
+            throw new RuntimeException("Unauthorized to delete this exam");
+        }
+
+        // Because of JPA Cascading, deleting the exam will auto-delete its questions and options!
+        examRepository.delete(exam);
     }
 }
