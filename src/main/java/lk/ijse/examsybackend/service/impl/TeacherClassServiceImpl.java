@@ -21,6 +21,7 @@ public class TeacherClassServiceImpl implements TeacherClassService {
     private final ClassAnnouncementRepo announcementRepository;
     private final UserAccountRepo userAccountRepository;
     private final NotificationService notificationService;
+    private final ClassEnrollmentRepo classEnrollmentRepo;
 
     @Transactional(readOnly = true)
     @Override
@@ -142,5 +143,48 @@ public class TeacherClassServiceImpl implements TeacherClassService {
         course.setBannerImageUrl(dto.getBannerImageUrl());
 
         courseRepository.save(course);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public ClassPeopleDTO getClassPeople(Integer classId) {
+        // 1. Get the course to find the teacher
+        Course course = courseRepository.findById(classId)
+                .orElseThrow(() -> new RuntimeException("Class not found"));
+
+        Teacher teacher = course.getTeacher();
+
+        // 2. Map the Teacher into a PersonDTO
+        PersonDTO teacherDto = PersonDTO.builder()
+                .id(teacher.getId())
+                .name(teacher.getFullName())
+                .email(teacher.getUserAccount().getEmail())
+                .initial(teacher.getFullName().substring(0, 1).toUpperCase())
+                .role("Teacher")
+                .profileImageUrl(teacher.getProfilePictureUrl())
+                .build();
+
+        // 3. Find all active enrollments for this class
+        List<ClassEnrollment> enrollments = classEnrollmentRepo.findByCourseId(classId);
+
+        // 4. Map the Students into PersonDTOs
+        List<PersonDTO> studentDtos = enrollments.stream().map(enrollment -> {
+            Student student = enrollment.getStudent();
+            return PersonDTO.builder()
+                    .id(student.getId())
+                    .name(student.getFullName())
+                    .email(student.getUserAccount().getEmail())
+                    .initial(student.getFullName().substring(0, 1).toUpperCase())
+                    .role("Student")
+                    // 🟢 Map the image URL here
+                    .profileImageUrl(student.getProfilePictureUrl())
+                    .build();
+        }).collect(Collectors.toList());
+
+        // 5. Package it all up and send it to React
+        return ClassPeopleDTO.builder()
+                .teachers(List.of(teacherDto))
+                .students(studentDtos)
+                .build();
     }
 }

@@ -1,10 +1,7 @@
 package lk.ijse.examsybackend.controller;
 
 import jakarta.validation.Valid;
-import lk.ijse.examsybackend.dto.AnnouncementDTO;
-import lk.ijse.examsybackend.dto.ClassStreamDTO;
-import lk.ijse.examsybackend.dto.CreateAnnouncementDTO;
-import lk.ijse.examsybackend.dto.UpdateAppearanceDTO;
+import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.service.TeacherClassService;
 import lk.ijse.examsybackend.util.APIResponse;
 import lombok.RequiredArgsConstructor;
@@ -69,5 +66,11 @@ public class TeacherClassController {
 
         teacherClassService.updateClassAppearance(classId, user.getUsername(), dto);
         return ResponseEntity.ok(new APIResponse<>(200, "Appearance updated successfully", null));
+    }
+
+    @GetMapping("/{classId}/people")
+    public ResponseEntity<APIResponse<ClassPeopleDTO>> getClassPeople(@PathVariable Integer classId) {
+        ClassPeopleDTO people = teacherClassService.getClassPeople(classId);
+        return ResponseEntity.ok(new APIResponse<>(200, "Roster loaded", people));
     }
 }
