@@ -43,4 +43,10 @@ public class TeacherDashboardController {
         dashboardService.deleteClass(userDetails.getUsername(), courseId);
         return ResponseEntity.ok(new APIResponse<>(200, "Class deleted successfully", null));
     }
+
+    @PostMapping("/rotate-codes")
+    public ResponseEntity<APIResponse<Void>> rotateCodes(@AuthenticationPrincipal UserDetails user) {
+        dashboardService.rotateExpiredClassCodes(user.getUsername());
+        return ResponseEntity.ok(new APIResponse<>(200, "Codes rotated if expired", null));
+    }
 }

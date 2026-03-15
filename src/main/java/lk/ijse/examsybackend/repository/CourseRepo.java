@@ -13,4 +13,5 @@ public interface CourseRepo extends JpaRepository<Course,Integer> {
     // Find a specific class to ensure the teacher actually owns it before deleting
     Optional<Course> findByIdAndTeacherUserAccountUsername(Integer id, String username);
 
+    List<Course> findByTeacherId(Integer id);
 }

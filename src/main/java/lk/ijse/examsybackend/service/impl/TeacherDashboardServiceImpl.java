@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Random;
 import java.util.UUID;
@@ -68,6 +69,7 @@ public class TeacherDashboardServiceImpl implements TeacherDashboardService {
                 .academicTerm(dto.getAcademicTerm())
                 .classCode(uniqueCode)
                 .themeColorHex(randomColor)
+                .classCodeUpdatedAt(LocalDateTime.now())
                 .isArchived(false)
                 .build();
 
@@ -80,5 +82,31 @@ public class TeacherDashboardServiceImpl implements TeacherDashboardService {
                 .themeColorHex(savedCourse.getThemeColorHex())
                 .bannerImageUrl(savedCourse.getBannerImageUrl())
                 .build();
+    }
+
+    @Transactional
+    @Override
+    public void rotateExpiredClassCodes(String username) {
+        Teacher teacher = teacherRepository.findByUserAccountUsername(username)
+                .orElseThrow(() -> new RuntimeException("Teacher not found"));
+
+        // Fetch all classes for this teacher
+        List<Course> courses = courseRepository.findByTeacherId(teacher.getId());
+
+        LocalDateTime sevenDaysAgo = LocalDateTime.now().minusDays(7);
+
+        for (Course course : courses) {
+            // Fallback to createdAt if for some reason updated_at is null
+            LocalDateTime lastUpdated = course.getClassCodeUpdatedAt() != null ?
+                    course.getClassCodeUpdatedAt() : course.getCreatedAt();
+
+            // If the code is older than 7 days, generate a new one!
+            if (lastUpdated != null && lastUpdated.isBefore(sevenDaysAgo)) {
+                String newCode = java.util.UUID.randomUUID().toString().substring(0, 7).toUpperCase();
+                course.setClassCode(newCode);
+                course.setClassCodeUpdatedAt(LocalDateTime.now()); // Reset the 7-day timer
+                courseRepository.save(course);
+            }
+        }
     }
 }

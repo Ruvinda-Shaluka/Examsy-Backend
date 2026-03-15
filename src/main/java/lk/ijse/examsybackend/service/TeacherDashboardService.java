@@ -15,4 +15,7 @@ public interface TeacherDashboardService {
 
     @Transactional
     TeacherClassCardDTO createClass(String username, CourseCreateDTO dto);
+
+    @Transactional
+    void rotateExpiredClassCodes(String username);
 }

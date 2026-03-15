@@ -42,4 +42,7 @@ public class Course {
     @CreationTimestamp
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "class_code_updated_at")
+    private LocalDateTime classCodeUpdatedAt;
 }
