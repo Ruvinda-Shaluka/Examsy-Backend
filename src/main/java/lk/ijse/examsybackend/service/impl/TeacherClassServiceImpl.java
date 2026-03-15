@@ -6,6 +6,7 @@ import lk.ijse.examsybackend.repository.*;
 import lk.ijse.examsybackend.service.NotificationService;
 import lk.ijse.examsybackend.service.TeacherClassService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +23,7 @@ public class TeacherClassServiceImpl implements TeacherClassService {
     private final UserAccountRepo userAccountRepository;
     private final NotificationService notificationService;
     private final ClassEnrollmentRepo classEnrollmentRepo;
+    private final JavaMailSender mailSender;
 
     @Transactional(readOnly = true)
     @Override
@@ -201,5 +203,46 @@ public class TeacherClassServiceImpl implements TeacherClassService {
 
         // 3. Remove the student
         classEnrollmentRepo.delete(enrollment);
+    }
+
+    // Don't forget to inject JavaMailSender!
+    // private final JavaMailSender mailSender;
+
+    @Transactional
+    @Override
+    public void inviteStudent(String teacherUsername, Integer classId, InviteStudentDTO dto) {
+        // 1. Verify the teacher owns this class
+        Course course = courseRepository.findByIdAndTeacherUserAccountUsername(classId, teacherUsername)
+                .orElseThrow(() -> new RuntimeException("Class not found or unauthorized"));
+
+        // 2. Grab the real, auto-rotating class code from the database
+        String activeClassCode = course.getClassCode();
+
+        // 3. Construct the secure join link
+        String inviteLink = "https://examsy.com/join/" + classId + "/" + activeClassCode;
+
+        // 4. Send the email
+        try {
+            jakarta.mail.internet.MimeMessage message = mailSender.createMimeMessage();
+            org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(new jakarta.mail.internet.InternetAddress("noreply@examsy.com", course.getTeacher().getFullName() + " (Examsy)"));
+            helper.setTo(dto.getEmail());
+            helper.setSubject("Invitation to join class: " + course.getName());
+
+            String emailBody = "Hello,\n\n" +
+                    "You have been invited by " + course.getTeacher().getFullName() +
+                    " to join the class: " + course.getName() + ".\n\n" +
+                    "Please copy the link below and paste it in your Examsy Student Dashboard to join:\n\n" +
+                    inviteLink + "\n\n" +
+                    "Welcome to the class!";
+
+            helper.setText(emailBody);
+            mailSender.send(message);
+
+        } catch (Exception e) {
+            System.err.println("Email Error: " + e.getMessage());
+            throw new RuntimeException("Failed to send invite email. Please check the email address and try again.");
+        }
     }
 }

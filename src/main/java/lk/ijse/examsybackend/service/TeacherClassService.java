@@ -24,4 +24,7 @@ public interface TeacherClassService {
 
     @Transactional
     void removeStudentFromClass(String teacherUsername, Integer classId, Integer studentId);
+
+    @Transactional
+    void inviteStudent(String teacherUsername, Integer classId, InviteStudentDTO dto);
 }

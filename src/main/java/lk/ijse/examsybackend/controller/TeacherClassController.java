@@ -83,4 +83,14 @@ public class TeacherClassController {
         teacherClassService.removeStudentFromClass(user.getUsername(), classId, studentId);
         return ResponseEntity.ok(new APIResponse<>(200, "Student successfully removed from class", null));
     }
+
+    @PostMapping("/{classId}/invite")
+    public ResponseEntity<APIResponse<Void>> inviteStudent(
+            @PathVariable Integer classId,
+            @AuthenticationPrincipal UserDetails user,
+            @Valid @RequestBody InviteStudentDTO dto) {
+
+        teacherClassService.inviteStudent(user.getUsername(), classId, dto);
+        return ResponseEntity.ok(new APIResponse<>(200, "Invitation sent successfully", null));
+    }
 }
