@@ -63,13 +63,18 @@ public class StudentDashboardServiceImpl implements StudentDashboardService {
     public StudentClassCardDTO joinClass(String username, JoinClassDTO dto) {
         String link = dto.getInviteLink().trim();
         Integer courseId;
+        String extractedCode;
 
-        // 1. Safely extract the Course ID
+        // 1. Safely extract the Course ID AND the Invite Code from the URL
         try {
             String[] parts = link.split("/join/");
             if (parts.length < 2) throw new Exception();
-            String idPart = parts[1].split("/")[0];
-            courseId = Integer.parseInt(idPart);
+
+            String[] params = parts[1].split("/");
+            if (params.length < 2) throw new Exception(); // Ensure both ID and Code exist
+
+            courseId = Integer.parseInt(params[0]);
+            extractedCode = params[1].trim();
         } catch (Exception e) {
             throw new RuntimeException("Invalid invite link format. Please check the link and try again.");
         }
@@ -80,9 +85,14 @@ public class StudentDashboardServiceImpl implements StudentDashboardService {
 
         // 3. Find the Course
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Class not found or the link has expired."));
+                .orElseThrow(() -> new RuntimeException("Class not found. Verify the link."));
 
-        // 4. Check if already enrolled to prevent duplicates
+        // 4. SECURITY VALIDATION: Check if the link code matches the database code
+        if (course.getClassCode() == null || !course.getClassCode().equals(extractedCode)) {
+            throw new RuntimeException("Invalid or expired invite link. Please ask your instructor for the latest link.");
+        }
+
+        // 5. Check if already enrolled to prevent duplicates
         boolean alreadyEnrolled = enrollmentRepository
                 .findByCourseIdAndStudentUserAccountUsername(courseId, username)
                 .isPresent();
@@ -91,15 +101,17 @@ public class StudentDashboardServiceImpl implements StudentDashboardService {
             throw new RuntimeException("You are already enrolled in this class.");
         }
 
-        // 5. Create and Save the Enrollment
+        // 6. Create and Save the Enrollment
         ClassEnrollment enrollment = ClassEnrollment.builder()
                 .course(course)
                 .student(student)
+                // If you have an enrolledAt timestamp in your entity, you can set it here:
+                // .enrolledAt(LocalDateTime.now())
                 .build();
 
         enrollmentRepository.save(enrollment);
 
-        // 6. Return the mapped DTO
+        // 7. Return the mapped DTO
         return StudentClassCardDTO.builder()
                 .id(course.getId())
                 .title(course.getName())

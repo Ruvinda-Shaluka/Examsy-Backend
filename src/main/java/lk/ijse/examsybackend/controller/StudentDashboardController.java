@@ -40,11 +40,13 @@ public class StudentDashboardController {
 
     @PostMapping("/classes/join")
     public ResponseEntity<APIResponse<StudentClassCardDTO>> joinClass(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestBody JoinClassDTO dto) { // @Valid checks the inviteLink
+            @AuthenticationPrincipal UserDetails user,
+            @Valid @RequestBody JoinClassDTO dto) {
 
-        StudentClassCardDTO joinedClass = dashboardService.joinClass(userDetails.getUsername(), dto);
-        return ResponseEntity.ok(new APIResponse<>(201, "Successfully joined the class", joinedClass));
+        // Calls your custom method that parses the link and returns the new Class Card!
+        StudentClassCardDTO joinedClass = dashboardService.joinClass(user.getUsername(), dto);
+
+        return ResponseEntity.ok(new APIResponse<>(200, "Successfully joined the class", joinedClass));
     }
 
     @PostMapping("/classes/report")
