@@ -21,4 +21,7 @@ public interface TeacherClassService {
 
     @Transactional(readOnly = true)
     ClassPeopleDTO getClassPeople(Integer classId);
+
+    @Transactional
+    void removeStudentFromClass(String teacherUsername, Integer classId, Integer studentId);
 }

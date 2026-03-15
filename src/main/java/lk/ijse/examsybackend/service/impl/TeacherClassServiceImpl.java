@@ -187,4 +187,19 @@ public class TeacherClassServiceImpl implements TeacherClassService {
                 .students(studentDtos)
                 .build();
     }
+
+    @Transactional
+    @Override
+    public void removeStudentFromClass(String teacherUsername, Integer classId, Integer studentId) {
+        // 1. Verify the teacher actually owns this class
+        Course course = courseRepository.findByIdAndTeacherUserAccountUsername(classId, teacherUsername)
+                .orElseThrow(() -> new RuntimeException("Class not found or unauthorized"));
+
+        // 2. Find the exact enrollment record
+        ClassEnrollment enrollment = classEnrollmentRepo.findByCourseIdAndStudentId(classId, studentId)
+                .orElseThrow(() -> new RuntimeException("Student is not enrolled in this class"));
+
+        // 3. Remove the student
+        classEnrollmentRepo.delete(enrollment);
+    }
 }

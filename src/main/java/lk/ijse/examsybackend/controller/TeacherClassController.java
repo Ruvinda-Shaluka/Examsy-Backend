@@ -73,4 +73,14 @@ public class TeacherClassController {
         ClassPeopleDTO people = teacherClassService.getClassPeople(classId);
         return ResponseEntity.ok(new APIResponse<>(200, "Roster loaded", people));
     }
+
+    @DeleteMapping("/{classId}/students/{studentId}")
+    public ResponseEntity<APIResponse<Void>> removeStudent(
+            @PathVariable Integer classId,
+            @PathVariable Integer studentId,
+            @AuthenticationPrincipal UserDetails user) {
+
+        teacherClassService.removeStudentFromClass(user.getUsername(), classId, studentId);
+        return ResponseEntity.ok(new APIResponse<>(200, "Student successfully removed from class", null));
+    }
 }
