@@ -36,6 +36,7 @@ public class TeacherDashboardServiceImpl implements TeacherDashboardService {
                         .section(course.getSectionName())
                         .themeColorHex(course.getThemeColorHex())
                         .bannerImageUrl(course.getBannerImageUrl())
+                        .classCode(course.getClassCode())
                         .build()
         ).collect(Collectors.toList());
     }
@@ -81,6 +82,7 @@ public class TeacherDashboardServiceImpl implements TeacherDashboardService {
                 .section(savedCourse.getSectionName())
                 .themeColorHex(savedCourse.getThemeColorHex())
                 .bannerImageUrl(savedCourse.getBannerImageUrl())
+                .classCode(savedCourse.getClassCode())
                 .build();
     }
 

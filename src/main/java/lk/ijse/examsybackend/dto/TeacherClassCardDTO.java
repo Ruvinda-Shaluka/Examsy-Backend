@@ -15,4 +15,5 @@ public class TeacherClassCardDTO {
     private String section;
     private String themeColorHex;
     private String bannerImageUrl;
+    private String classCode;
 }
