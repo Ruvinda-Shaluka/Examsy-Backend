@@ -1,6 +1,7 @@
 package lk.ijse.examsybackend.controller;
 
 import jakarta.validation.Valid;
+import lk.ijse.examsybackend.dto.ClassPeopleDTO;
 import lk.ijse.examsybackend.dto.JoinClassDTO;
 import lk.ijse.examsybackend.dto.ReportCreateDTO;
 import lk.ijse.examsybackend.dto.StudentClassCardDTO;
@@ -58,4 +59,9 @@ public class StudentDashboardController {
         return ResponseEntity.ok(new APIResponse<>(201, "Report submitted successfully", null));
     }
 
+    @GetMapping("/classes/{classId}/people")
+    public ResponseEntity<APIResponse<ClassPeopleDTO>> getClassPeople(@PathVariable Integer classId) {
+        ClassPeopleDTO people = dashboardService.getClassPeople(classId);
+        return ResponseEntity.ok(new APIResponse<>(200, "Roster loaded", people));
+    }
 }

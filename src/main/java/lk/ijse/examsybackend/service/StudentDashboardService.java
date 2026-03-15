@@ -1,5 +1,6 @@
 package lk.ijse.examsybackend.service;
 
+import lk.ijse.examsybackend.dto.ClassPeopleDTO;
 import lk.ijse.examsybackend.dto.JoinClassDTO;
 import lk.ijse.examsybackend.dto.ReportCreateDTO;
 import lk.ijse.examsybackend.dto.StudentClassCardDTO;
@@ -20,4 +21,7 @@ public interface StudentDashboardService {
 
     @Transactional
     void fileReport(String username, ReportCreateDTO dto);
+
+    @Transactional(readOnly = true)
+    ClassPeopleDTO getClassPeople(Integer classId);
 }

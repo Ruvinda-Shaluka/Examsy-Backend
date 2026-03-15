@@ -1,12 +1,7 @@
 package lk.ijse.examsybackend.service.impl;
 
-import lk.ijse.examsybackend.dto.JoinClassDTO;
-import lk.ijse.examsybackend.dto.ReportCreateDTO;
-import lk.ijse.examsybackend.dto.StudentClassCardDTO;
-import lk.ijse.examsybackend.entity.ClassEnrollment;
-import lk.ijse.examsybackend.entity.Course;
-import lk.ijse.examsybackend.entity.Report;
-import lk.ijse.examsybackend.entity.Student;
+import lk.ijse.examsybackend.dto.*;
+import lk.ijse.examsybackend.entity.*;
 import lk.ijse.examsybackend.repository.ClassEnrollmentRepo;
 import lk.ijse.examsybackend.repository.CourseRepo;
 import lk.ijse.examsybackend.repository.ReportRepo;
@@ -27,6 +22,7 @@ public class StudentDashboardServiceImpl implements StudentDashboardService {
     private final CourseRepo courseRepository;
     private final StudentRepo studentRepository;
     private final ReportRepo reportRepository;
+    private final ClassEnrollmentRepo classEnrollmentRepo;
 
     @Transactional(readOnly = true)
     @Override
@@ -141,5 +137,47 @@ public class StudentDashboardServiceImpl implements StudentDashboardService {
                 .build();
 
         reportRepository.save(report);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public ClassPeopleDTO getClassPeople(Integer classId) {
+        // 1. Find the Course
+        Course course = courseRepository.findById(classId)
+                .orElseThrow(() -> new RuntimeException("Class not found"));
+
+        Teacher teacher = course.getTeacher();
+
+        // 2. Map the Teacher into a PersonDTO
+        PersonDTO teacherDto = PersonDTO.builder()
+                .id(teacher.getId())
+                .name(teacher.getFullName())
+                .email(teacher.getUserAccount().getEmail())
+                .initial(teacher.getFullName().substring(0, 1).toUpperCase())
+                .role("Teacher")
+                .profileImageUrl(teacher.getProfilePictureUrl())
+                .build();
+
+        // 3. Find all students enrolled in this class
+        List<ClassEnrollment> enrollments = classEnrollmentRepo.findByCourseId(classId);
+
+        // 4. Map the Students into PersonDTOs
+        List<PersonDTO> studentDtos = enrollments.stream().map(enrollment -> {
+            Student student = enrollment.getStudent();
+            return PersonDTO.builder()
+                    .id(student.getId())
+                    .name(student.getFullName())
+                    .email(student.getUserAccount().getEmail())
+                    .initial(student.getFullName().substring(0, 1).toUpperCase())
+                    .role("Student")
+                    .profileImageUrl(student.getProfilePictureUrl())
+                    .build();
+        }).collect(Collectors.toList());
+
+        // 5. Return the packaged DTO
+        return ClassPeopleDTO.builder()
+                .teachers(List.of(teacherDto))
+                .students(studentDtos)
+                .build();
     }
 }
