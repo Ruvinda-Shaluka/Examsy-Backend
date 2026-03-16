@@ -1,5 +1,6 @@
 package lk.ijse.examsybackend.controller;
 
+import lk.ijse.examsybackend.dto.CalendarExamDTO;
 import lk.ijse.examsybackend.dto.CourseCreateDTO;
 import lk.ijse.examsybackend.dto.TeacherClassCardDTO;
 import lk.ijse.examsybackend.service.TeacherDashboardService;
@@ -48,5 +49,10 @@ public class TeacherDashboardController {
     public ResponseEntity<APIResponse<Void>> rotateCodes(@AuthenticationPrincipal UserDetails user) {
         dashboardService.rotateExpiredClassCodes(user.getUsername());
         return ResponseEntity.ok(new APIResponse<>(200, "Codes rotated if expired", null));
+    }
+
+    @GetMapping("/calendar/exams")
+    public ResponseEntity<APIResponse<List<CalendarExamDTO>>> getCalendarExams(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(new APIResponse<>(200, "Success", dashboardService.getTeacherCalendarExams(user.getUsername())));
     }
 }

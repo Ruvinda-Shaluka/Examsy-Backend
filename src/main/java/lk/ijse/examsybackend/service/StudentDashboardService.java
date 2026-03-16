@@ -1,9 +1,6 @@
 package lk.ijse.examsybackend.service;
 
-import lk.ijse.examsybackend.dto.ClassPeopleDTO;
-import lk.ijse.examsybackend.dto.JoinClassDTO;
-import lk.ijse.examsybackend.dto.ReportCreateDTO;
-import lk.ijse.examsybackend.dto.StudentClassCardDTO;
+import lk.ijse.examsybackend.dto.*;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -24,4 +21,7 @@ public interface StudentDashboardService {
 
     @Transactional(readOnly = true)
     ClassPeopleDTO getClassPeople(Integer classId);
+
+    @Transactional(readOnly = true)
+    List<CalendarExamDTO> getStudentCalendarExams(String username);
 }

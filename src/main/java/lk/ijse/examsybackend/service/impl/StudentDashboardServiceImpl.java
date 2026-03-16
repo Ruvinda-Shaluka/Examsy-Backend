@@ -2,15 +2,13 @@ package lk.ijse.examsybackend.service.impl;
 
 import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.entity.*;
-import lk.ijse.examsybackend.repository.ClassEnrollmentRepo;
-import lk.ijse.examsybackend.repository.CourseRepo;
-import lk.ijse.examsybackend.repository.ReportRepo;
-import lk.ijse.examsybackend.repository.StudentRepo;
+import lk.ijse.examsybackend.repository.*;
 import lk.ijse.examsybackend.service.StudentDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,6 +21,7 @@ public class StudentDashboardServiceImpl implements StudentDashboardService {
     private final StudentRepo studentRepository;
     private final ReportRepo reportRepository;
     private final ClassEnrollmentRepo classEnrollmentRepo;
+    private final ExamRepo examRepository;
 
     @Transactional(readOnly = true)
     @Override
@@ -179,5 +178,32 @@ public class StudentDashboardServiceImpl implements StudentDashboardService {
                 .teachers(List.of(teacherDto))
                 .students(studentDtos)
                 .build();
+    }
+
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<CalendarExamDTO> getStudentCalendarExams(String username) {
+        List<Exam> exams = examRepository.findExamsByStudentUsername(username);
+        return mapExamsToCalendarDTOs(exams); // Use the same mapping logic as above!
+    }
+
+    // Helper method to map entities to DTOs
+    private List<CalendarExamDTO> mapExamsToCalendarDTOs(List<Exam> exams) {
+        return exams.stream().map(exam -> {
+            // Determine the calendar date based on Exam Mode
+            LocalDateTime displayDate = "REAL_TIME".equals(exam.getExamMode()) ?
+                    exam.getScheduledStartTime() : exam.getDeadlineTime();
+
+            return CalendarExamDTO.builder()
+                    .id(exam.getId())
+                    .classId(exam.getCourse().getId())
+                    .title(exam.getTitle())
+                    .courseName(exam.getCourse().getName())
+                    .themeColorHex(exam.getCourse().getThemeColorHex())
+                    .examDate(displayDate)
+                    .examMode(exam.getExamMode())
+                    .build();
+        }).collect(java.util.stream.Collectors.toList());
     }
 }

@@ -1,5 +1,6 @@
 package lk.ijse.examsybackend.service;
 
+import lk.ijse.examsybackend.dto.CalendarExamDTO;
 import lk.ijse.examsybackend.dto.CourseCreateDTO;
 import lk.ijse.examsybackend.dto.TeacherClassCardDTO;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,4 +19,7 @@ public interface TeacherDashboardService {
 
     @Transactional
     void rotateExpiredClassCodes(String username);
+
+    @Transactional(readOnly = true)
+    List<CalendarExamDTO> getTeacherCalendarExams(String username);
 }

@@ -10,6 +10,7 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -205,9 +206,6 @@ public class TeacherClassServiceImpl implements TeacherClassService {
         classEnrollmentRepo.delete(enrollment);
     }
 
-    // Don't forget to inject JavaMailSender!
-    // private final JavaMailSender mailSender;
-
     @Transactional
     @Override
     public void inviteStudent(String teacherUsername, Integer classId, InviteStudentDTO dto) {
@@ -245,4 +243,5 @@ public class TeacherClassServiceImpl implements TeacherClassService {
             throw new RuntimeException("Failed to send invite email. Please check the email address and try again.");
         }
     }
+
 }

@@ -3,6 +3,8 @@ package lk.ijse.examsybackend.service;
 import lk.ijse.examsybackend.dto.*;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 public interface TeacherClassService {
     @Transactional(readOnly = true)
     ClassStreamDTO getClassStream(Integer classId);
@@ -27,4 +29,5 @@ public interface TeacherClassService {
 
     @Transactional
     void inviteStudent(String teacherUsername, Integer classId, InviteStudentDTO dto);
+
 }

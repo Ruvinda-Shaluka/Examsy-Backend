@@ -1,10 +1,7 @@
 package lk.ijse.examsybackend.controller;
 
 import jakarta.validation.Valid;
-import lk.ijse.examsybackend.dto.ClassPeopleDTO;
-import lk.ijse.examsybackend.dto.JoinClassDTO;
-import lk.ijse.examsybackend.dto.ReportCreateDTO;
-import lk.ijse.examsybackend.dto.StudentClassCardDTO;
+import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.service.StudentDashboardService;
 import lk.ijse.examsybackend.util.APIResponse;
 import lombok.RequiredArgsConstructor;
@@ -63,5 +60,10 @@ public class StudentDashboardController {
     public ResponseEntity<APIResponse<ClassPeopleDTO>> getClassPeople(@PathVariable Integer classId) {
         ClassPeopleDTO people = dashboardService.getClassPeople(classId);
         return ResponseEntity.ok(new APIResponse<>(200, "Roster loaded", people));
+    }
+
+    @GetMapping("/calendar/exams")
+    public ResponseEntity<APIResponse<List<CalendarExamDTO>>> getCalendarExams(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(new APIResponse<>(200, "Success", dashboardService.getStudentCalendarExams(user.getUsername())));
     }
 }

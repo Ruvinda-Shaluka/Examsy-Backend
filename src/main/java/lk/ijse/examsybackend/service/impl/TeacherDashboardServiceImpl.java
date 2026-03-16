@@ -1,10 +1,13 @@
 package lk.ijse.examsybackend.service.impl;
 
+import lk.ijse.examsybackend.dto.CalendarExamDTO;
 import lk.ijse.examsybackend.dto.CourseCreateDTO;
 import lk.ijse.examsybackend.dto.TeacherClassCardDTO;
 import lk.ijse.examsybackend.entity.Course;
+import lk.ijse.examsybackend.entity.Exam;
 import lk.ijse.examsybackend.entity.Teacher;
 import lk.ijse.examsybackend.repository.CourseRepo;
+import lk.ijse.examsybackend.repository.ExamRepo;
 import lk.ijse.examsybackend.repository.TeacherRepo;
 import lk.ijse.examsybackend.service.TeacherDashboardService;
 import lombok.RequiredArgsConstructor;
@@ -23,6 +26,7 @@ public class TeacherDashboardServiceImpl implements TeacherDashboardService {
 
     private final CourseRepo courseRepository;
     private final TeacherRepo teacherRepository;
+    private final ExamRepo examRepository;
 
     @Transactional(readOnly = true)
     @Override
@@ -110,5 +114,31 @@ public class TeacherDashboardServiceImpl implements TeacherDashboardService {
                 courseRepository.save(course);
             }
         }
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<CalendarExamDTO> getTeacherCalendarExams(String username) {
+        List<Exam> exams = examRepository.findByCourseTeacherUserAccountUsername(username);
+        return mapExamsToCalendarDTOs(exams);
+    }
+
+    // Helper method to map entities to DTOs
+    private List<CalendarExamDTO> mapExamsToCalendarDTOs(List<Exam> exams) {
+        return exams.stream().map(exam -> {
+            // Determine the calendar date based on Exam Mode
+            LocalDateTime displayDate = "REAL_TIME".equals(exam.getExamMode()) ?
+                    exam.getScheduledStartTime() : exam.getDeadlineTime();
+
+            return CalendarExamDTO.builder()
+                    .id(exam.getId())
+                    .classId(exam.getCourse().getId())
+                    .title(exam.getTitle())
+                    .courseName(exam.getCourse().getName())
+                    .themeColorHex(exam.getCourse().getThemeColorHex())
+                    .examDate(displayDate)
+                    .examMode(exam.getExamMode())
+                    .build();
+        }).collect(java.util.stream.Collectors.toList());
     }
 }
