@@ -1,42 +1,37 @@
+Forgot Password -> Register Teacher and Student
+- Reset Password Form
+
+Teacher Classroom -> People
+- Get an email when student requests to join the classroom
+- Confirm student invite link and give access to the classroom
+
 Teacher -> Ongoing Exams
 - View Ongoing Exams details
 - View Proctoring details
 - View Student's Proctoring details
 - View Student's Exam details
 
-Teacher Classroom -> People
-- Get an email when student requests to join the classroom
-- Confirm student invite link and give access to the classroom
-
 Manage Exams ->Testing
-
-Teacher -> Grading
--OCR Apache PDFBox and Tesseract OCR
--Cosine Similarity
--Grade Calculation
-
-Teacher Classroom -> Grades at last
-
-Student Classroom -> Grades at last
-
-Student -> Mock Exams
-- Generate Mock Exams
-- Do MCQ Mock Exams
 
 Student -> Ongoing Exams
 - View Ongoing Exams details
 - Participate in Ongoing Exams
 - After Exam Submission, Make sure to Save the Exam Details
 
-Forgot Password -> Register Teacher and Student
-- Reset Password Form
-
-View Password -> Register Teacher and Student
-- Register Teacher
-- Register Student
-- Login Form
-
 Google Oauth -> Register Teacher and Student
 - Register Teacher with Google Oauth
 - Register Student with Google Oauth
 - Login Form with Google Oauth
+
+Teacher -> Grading
+-OCR Apache PDFBox and Tesseract OCR
+-Cosine Similarity
+-Grade Calculation
+
+Student -> Mock Exams
+- Generate Mock Exams
+- Do MCQ Mock Exams
+
+Teacher Classroom -> Grades at last
+
+Student Classroom -> Grades at last
