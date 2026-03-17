@@ -1,12 +1,8 @@
 package lk.ijse.examsybackend.controller;
 
 import jakarta.validation.Valid;
-import lk.ijse.examsybackend.dto.APIResponse;
-import lk.ijse.examsybackend.dto.AuthDTO;
-import lk.ijse.examsybackend.dto.StudentRegisterDTO;
-import lk.ijse.examsybackend.dto.TeacherRegisterDTO;
+import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.service.AuthService;
-import lk.ijse.examsybackend.service.impl.AuthServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -34,5 +30,23 @@ public class AuthController {
     @PostMapping("sign-in")
     public ResponseEntity<APIResponse> loginUser(@Valid @RequestBody AuthDTO authDTO) {
         return ResponseEntity.ok(new APIResponse(200, "OK", authService.authenticate(authDTO)));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<APIResponse> forgotPassword(@RequestBody ForgotPasswordDTO dto) {
+        authService.initiatePasswordReset(dto.getEmail());
+        return ResponseEntity.ok(new APIResponse(200, "Code sent successfully", null));
+    }
+
+    @PostMapping("/verify-code")
+    public ResponseEntity<APIResponse> verifyCode(@RequestBody VerifyCodeDTO dto) {
+        authService.verifyResetCode(dto.getEmail(), dto.getCode());
+        return ResponseEntity.ok(new APIResponse(200, "Code verified", null));
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<APIResponse> resetPassword(@RequestBody ResetPasswordDTO dto) {
+        authService.resetPassword(dto.getEmail(), dto.getCode(), dto.getNewPassword());
+        return ResponseEntity.ok(new APIResponse(200, "Password updated successfully", null));
     }
 }

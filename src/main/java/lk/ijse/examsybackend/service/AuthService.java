@@ -14,4 +14,15 @@ public interface AuthService {
 
     @Transactional
     String registerTeacher(TeacherRegisterDTO dto);
+
+    // Generate Code and Send Email
+    @Transactional
+    void initiatePasswordReset(String email);
+
+    // Verify the Code
+    boolean verifyResetCode(String email, String code);
+
+    // Update the Password
+    @Transactional
+    void resetPassword(String email, String code, String newPassword);
 }

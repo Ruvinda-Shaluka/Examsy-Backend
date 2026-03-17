@@ -53,6 +53,12 @@ public class UserAccount implements UserDetails {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Column(name = "reset_code", length = 6)
+    private String resetCode;
+
+    @Column(name = "reset_code_expires_at")
+    private LocalDateTime resetCodeExpiresAt;
+
     // Spring Security UserDetails Methods
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

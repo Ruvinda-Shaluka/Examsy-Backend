@@ -14,11 +14,14 @@ import lk.ijse.examsybackend.repository.UserAccountRepo;
 import lk.ijse.examsybackend.service.AuthService;
 import lk.ijse.examsybackend.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -29,6 +32,7 @@ public class AuthServiceImpl implements AuthService {
     private final TeacherRepo teacherRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+    private final JavaMailSender mailSender;
 
     /**
      * Authenticates a user (Student, Teacher, or Admin) and returns a JWT token.
@@ -138,5 +142,64 @@ public class AuthServiceImpl implements AuthService {
         if (userAccountRepository.existsByEmail(email)) {
             throw new RuntimeException("Email is already in use");
         }
+    }
+
+    // Generate Code and Send Email
+    @Transactional
+    @Override
+    public void initiatePasswordReset(String email) {
+        UserAccount user = userAccountRepository.findByUsernameOrEmail(email, email)
+                .orElseThrow(() -> new RuntimeException("If this email exists, a code has been sent.")); // Vague message for security!
+
+        // Generate 6-digit code
+        String code = String.format("%06d", new java.util.Random().nextInt(999999));
+
+        user.setResetCode(code);
+        user.setResetCodeExpiresAt(LocalDateTime.now().plusMinutes(5)); // Expires in 5 mins
+        userAccountRepository.save(user);
+
+        // Send Email (Assuming you have mailSender configured)
+        try {
+            jakarta.mail.internet.MimeMessage message = mailSender.createMimeMessage();
+            org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(message, true, "UTF-8");
+            helper.setTo(user.getEmail());
+            helper.setSubject("Examsy Password Reset Code");
+            helper.setText("Your password reset code is: " + code + "\n\nThis code expires in 15 minutes.");
+            mailSender.send(message);
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to send email");
+        }
+    }
+
+    // Verify the Code
+    @Override
+    public boolean verifyResetCode(String email, String code) {
+        UserAccount user = userAccountRepository.findByUsernameOrEmail(email, email)
+                .orElseThrow(() -> new RuntimeException("Invalid request"));
+
+        if (user.getResetCode() == null || !user.getResetCode().equals(code)) {
+            throw new RuntimeException("Invalid verification code");
+        }
+        if (LocalDateTime.now().isAfter(user.getResetCodeExpiresAt())) {
+            throw new RuntimeException("Verification code has expired");
+        }
+        return true;
+    }
+
+    // Update the Password
+    @Transactional
+    @Override
+    public void resetPassword(String email, String code, String newPassword) {
+        // Re-verify the code just in case they bypassed the frontend
+        verifyResetCode(email, code);
+
+        UserAccount user = userAccountRepository.findByUsernameOrEmail(email, email).get();
+
+        // Hash the new password and clear the reset code!
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setResetCode(null);
+        user.setResetCodeExpiresAt(null);
+
+        userAccountRepository.save(user);
     }
 }
