@@ -32,3 +32,5 @@ Student -> Mock Exams
 Teacher Classroom -> Grades at last
 
 Student Classroom -> Grades at last
+
+Search Functionality
