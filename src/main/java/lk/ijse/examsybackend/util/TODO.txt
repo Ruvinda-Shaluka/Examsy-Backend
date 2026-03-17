@@ -1,6 +1,3 @@
-Forgot Password -> Register Teacher and Student
-- Reset Password Form
-
 Teacher Classroom -> People
 - Get an email when student requests to join the classroom
 - Confirm student invite link and give access to the classroom
