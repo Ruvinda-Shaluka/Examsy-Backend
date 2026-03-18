@@ -3,6 +3,7 @@ package lk.ijse.examsybackend.service.impl;
 import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.entity.*;
 import lk.ijse.examsybackend.repository.*;
+import lk.ijse.examsybackend.service.NotificationService;
 import lk.ijse.examsybackend.service.StudentDashboardService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +23,8 @@ public class StudentDashboardServiceImpl implements StudentDashboardService {
     private final ReportRepo reportRepository;
     private final ClassEnrollmentRepo classEnrollmentRepo;
     private final ExamRepo examRepository;
+    private final ClassJoinRequestRepo classJoinRequestRepo;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     @Override
@@ -55,66 +58,57 @@ public class StudentDashboardServiceImpl implements StudentDashboardService {
 
     @Transactional
     @Override
-    public StudentClassCardDTO joinClass(String username, JoinClassDTO dto) {
+    public String joinClass(String username, JoinClassDTO dto) {
         String link = dto.getInviteLink().trim();
         Integer courseId;
         String extractedCode;
 
-        // 1. Safely extract the Course ID AND the Invite Code from the URL
+        // 1. Safely extract the Course ID AND the Invite Code
         try {
             String[] parts = link.split("/join/");
             if (parts.length < 2) throw new Exception();
-
             String[] params = parts[1].split("/");
-            if (params.length < 2) throw new Exception(); // Ensure both ID and Code exist
-
+            if (params.length < 2) throw new Exception();
             courseId = Integer.parseInt(params[0]);
             extractedCode = params[1].trim();
         } catch (Exception e) {
-            throw new RuntimeException("Invalid invite link format. Please check the link and try again.");
+            throw new RuntimeException("Invalid invite link format.");
         }
 
-        // 2. Find the Student
+        // 2. Find Student and Course
         Student student = studentRepository.findByUserAccountUsername(username)
-                .orElseThrow(() -> new RuntimeException("Student profile not found."));
-
-        // 3. Find the Course
+                .orElseThrow(() -> new RuntimeException("Student not found."));
         Course course = courseRepository.findById(courseId)
-                .orElseThrow(() -> new RuntimeException("Class not found. Verify the link."));
+                .orElseThrow(() -> new RuntimeException("Class not found."));
 
-        // 4. SECURITY VALIDATION: Check if the link code matches the database code
+        // 3. Security Check
         if (course.getClassCode() == null || !course.getClassCode().equals(extractedCode)) {
-            throw new RuntimeException("Invalid or expired invite link. Please ask your instructor for the latest link.");
+            throw new RuntimeException("Invalid or expired invite link.");
         }
 
-        // 5. Check if already enrolled to prevent duplicates
-        boolean alreadyEnrolled = enrollmentRepository
-                .findByCourseIdAndStudentUserAccountUsername(courseId, username)
-                .isPresent();
-
-        if (alreadyEnrolled) {
+        // 4. Check if already enrolled
+        if (enrollmentRepository.findByCourseIdAndStudentUserAccountUsername(courseId, username).isPresent()) {
             throw new RuntimeException("You are already enrolled in this class.");
         }
 
-        // 6. Create and Save the Enrollment
-        ClassEnrollment enrollment = ClassEnrollment.builder()
+        // 5.Check if already requested
+        if (classJoinRequestRepo.findByCourseIdAndStudentUserAccountUsername(courseId, username).isPresent()) {
+            throw new RuntimeException("You have already sent a request to join this class. Please wait for the instructor to approve it.");
+        }
+
+        // 6.Save the PENDING request instead of Enrollment
+        ClassJoinRequest request = ClassJoinRequest.builder()
                 .course(course)
                 .student(student)
-                // If you have an enrolledAt timestamp in your entity, you can set it here:
-                // .enrolledAt(LocalDateTime.now())
+                .status("PENDING")
                 .build();
+        classJoinRequestRepo.save(request);
 
-        enrollmentRepository.save(enrollment);
+        // 7. Alert the Teacher!
+        notificationService.notifyTeacherOfJoinRequest(course, student);
 
-        // 7. Return the mapped DTO
-        return StudentClassCardDTO.builder()
-                .id(course.getId())
-                .title(course.getName())
-                .section(course.getSectionName())
-                .themeColorHex(course.getThemeColorHex())
-                .bannerImageUrl(course.getBannerImageUrl())
-                .teacher(course.getTeacher() != null ? course.getTeacher().getFullName() : "Unknown Instructor")
-                .build();
+        // 8. Return a success message
+        return "Request sent successfully! You will be notified once the instructor approves your request.";
     }
 
     @Transactional

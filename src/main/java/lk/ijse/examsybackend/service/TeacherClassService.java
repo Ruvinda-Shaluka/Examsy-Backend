@@ -30,4 +30,12 @@ public interface TeacherClassService {
     @Transactional
     void inviteStudent(String teacherUsername, Integer classId, InviteStudentDTO dto);
 
+    @Transactional(readOnly = true)
+    List<JoinRequestDTO> getPendingJoinRequests(String teacherUsername, Integer classId);
+
+    @Transactional
+    void approveJoinRequest(String teacherUsername, Integer requestId);
+
+    @Transactional
+    void rejectJoinRequest(String teacherUsername, Integer requestId);
 }

@@ -10,7 +10,6 @@ import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -24,6 +23,7 @@ public class TeacherClassServiceImpl implements TeacherClassService {
     private final UserAccountRepo userAccountRepository;
     private final NotificationService notificationService;
     private final ClassEnrollmentRepo classEnrollmentRepo;
+    private final ClassJoinRequestRepo classJoinRequestRepo;
     private final JavaMailSender mailSender;
 
     @Transactional(readOnly = true)
@@ -244,4 +244,64 @@ public class TeacherClassServiceImpl implements TeacherClassService {
         }
     }
 
+    @Transactional(readOnly = true)
+    @Override
+    public List<JoinRequestDTO> getPendingJoinRequests(String teacherUsername, Integer classId) {
+        // Verify teacher owns course
+        courseRepository.findByIdAndTeacherUserAccountUsername(classId, teacherUsername)
+                .orElseThrow(() -> new RuntimeException("Unauthorized"));
+
+        return classJoinRequestRepo.findByCourseIdAndStatusOrderByRequestedAtAsc(classId, "PENDING")
+                .stream().map(req -> JoinRequestDTO.builder()
+                        .requestId(req.getId())
+                        .studentId(req.getStudent().getId())
+                        .studentName(req.getStudent().getFullName())
+                        .studentEmail(req.getStudent().getUserAccount().getEmail())
+                        .initial(req.getStudent().getFullName().substring(0, 1).toUpperCase())
+                        .requestedAt(req.getRequestedAt())
+                        .build()
+                ).collect(Collectors.toList());
+    }
+
+    @Transactional
+    @Override
+    public void approveJoinRequest(String teacherUsername, Integer requestId) {
+        ClassJoinRequest request = classJoinRequestRepo.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+
+        // Verify teacher owns this specific course
+        if (!request.getCourse().getTeacher().getUserAccount().getUsername().equals(teacherUsername)) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        // 1. Create the official Enrollment!
+        ClassEnrollment enrollment = ClassEnrollment.builder()
+                .course(request.getCourse())
+                .student(request.getStudent())
+                .build();
+        classEnrollmentRepo.save(enrollment);
+
+        // 2. Delete the pending request so it disappears from the waiting room
+        classJoinRequestRepo.delete(request);
+
+        // 3. Notify the student
+        notificationService.notifyStudentOfJoinResult(request.getStudent(), request.getCourse(), true);
+    }
+
+    @Transactional
+    @Override
+    public void rejectJoinRequest(String teacherUsername, Integer requestId) {
+        ClassJoinRequest request = classJoinRequestRepo.findById(requestId)
+                .orElseThrow(() -> new RuntimeException("Request not found"));
+
+        if (!request.getCourse().getTeacher().getUserAccount().getUsername().equals(teacherUsername)) {
+            throw new RuntimeException("Unauthorized");
+        }
+
+        // Delete the request
+        classJoinRequestRepo.delete(request);
+
+        // Notify the student they were rejected
+        notificationService.notifyStudentOfJoinResult(request.getStudent(), request.getCourse(), false);
+    }
 }

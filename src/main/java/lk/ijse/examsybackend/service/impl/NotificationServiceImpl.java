@@ -3,11 +3,7 @@ package lk.ijse.examsybackend.service.impl;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import lk.ijse.examsybackend.dto.NotificationDTO;
-import lk.ijse.examsybackend.entity.ClassEnrollment;
-import lk.ijse.examsybackend.entity.Notification;
-import lk.ijse.examsybackend.entity.Student;
-import lk.ijse.examsybackend.entity.Teacher;
-import lk.ijse.examsybackend.entity.UserAccount;
+import lk.ijse.examsybackend.entity.*;
 import lk.ijse.examsybackend.repository.ClassEnrollmentRepo;
 import lk.ijse.examsybackend.repository.NotificationRepo;
 import lk.ijse.examsybackend.repository.StudentRepo;
@@ -172,6 +168,99 @@ public class NotificationServiceImpl implements NotificationService {
 
         if (!notificationsToSave.isEmpty()) {
             notificationRepository.saveAll(notificationsToSave);
+        }
+    }
+
+    @Transactional
+    @Override
+    public void notifyTeacherOfJoinRequest(Course course, Student student) {
+        Teacher teacher = course.getTeacher();
+        UserAccount teacherAccount = teacher.getUserAccount();
+
+        // Grab the teacher's notification settings using your existing helper
+        UserPrefs prefs = getUserPreferences(teacherAccount.getUsername());
+
+        String notificationTitle = "New Join Request: " + course.getName();
+        String content = student.getFullName() + " has requested to join your class.";
+
+        // 1. In-App Push Notification
+        if (prefs.isPushEnabled()) {
+            Notification pushNotif = Notification.builder()
+                    .userAccount(teacherAccount)
+                    .title(notificationTitle)
+                    .message(content)
+                    .isRead(false)
+                    .courseId(course.getId())
+                    .build();
+            notificationRepository.save(pushNotif);
+        }
+
+        // 2. Email Notification
+        if (prefs.isEmailEnabled() && teacherAccount.getEmail() != null) {
+            try {
+                jakarta.mail.internet.MimeMessage message = mailSender.createMimeMessage();
+                org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(message, true, "UTF-8");
+
+                helper.setFrom(new jakarta.mail.internet.InternetAddress("noreply@examsy.com", "Examsy Notifications"));
+                helper.setTo(teacherAccount.getEmail());
+                helper.setSubject("Action Required: " + notificationTitle);
+
+                String body = "Hello " + teacher.getFullName() + ",\n\n" +
+                        content + "\n\n" +
+                        "Please log in to your Examsy Teacher Dashboard and navigate to the 'People' tab of this class to approve or reject this request.";
+
+                helper.setText(body);
+                mailSender.send(message);
+            } catch (Exception e) {
+                System.err.println("Failed to send join request email to teacher: " + e.getMessage());
+            }
+        }
+    }
+
+    @Transactional
+    @Override
+    public void notifyStudentOfJoinResult(Student student, Course course, boolean isApproved) {
+        UserAccount studentAccount = student.getUserAccount();
+        UserPrefs prefs = getUserPreferences(studentAccount.getUsername());
+
+        String status = isApproved ? "Approved" : "Declined";
+        String notificationTitle = "Class Join Request " + status;
+        String content = isApproved
+                ? "Your request to join '" + course.getName() + "' has been approved by the instructor. You can now access the classwork."
+                : "Your request to join '" + course.getName() + "' was declined by the instructor.";
+
+        // 1. Push Notification
+        if (prefs.isPushEnabled()) {
+            Notification pushNotif = Notification.builder()
+                    .userAccount(studentAccount)
+                    .title(notificationTitle)
+                    .message(content)
+                    .isRead(false)
+                    // Only link to the course if approved, otherwise they can't access it anyway
+                    .courseId(isApproved ? course.getId() : null)
+                    .build();
+            notificationRepository.save(pushNotif);
+        }
+
+        // 2. Email Notification
+        if (prefs.isEmailEnabled() && studentAccount.getEmail() != null) {
+            try {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+                helper.setFrom(new InternetAddress("noreply@examsy.com", "Examsy Notifications"));
+                helper.setTo(studentAccount.getEmail());
+                helper.setSubject(notificationTitle);
+
+                String body = "Hello " + student.getFullName() + ",\n\n" +
+                        content + "\n\n" +
+                        (isApproved ? "Log in to Examsy to view your new class dashboard." : "If you believe this is an error, please contact your instructor.");
+
+                helper.setText(body);
+                mailSender.send(message);
+            } catch (Exception e) {
+                System.err.println("Failed to send join result email to student: " + e.getMessage());
+            }
         }
     }
 

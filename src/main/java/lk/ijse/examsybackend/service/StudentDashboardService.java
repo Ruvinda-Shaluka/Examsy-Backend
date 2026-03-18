@@ -14,7 +14,7 @@ public interface StudentDashboardService {
     void unenrollFromClass(String username, Integer courseId);
 
     @Transactional
-    StudentClassCardDTO joinClass(String username, JoinClassDTO dto);
+    String joinClass(String username, JoinClassDTO dto);
 
     @Transactional
     void fileReport(String username, ReportCreateDTO dto);

@@ -11,6 +11,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/v1/teacher/classes")
 @RequiredArgsConstructor
@@ -92,5 +94,25 @@ public class TeacherClassController {
 
         teacherClassService.inviteStudent(user.getUsername(), classId, dto);
         return ResponseEntity.ok(new APIResponse<>(200, "Invitation sent successfully", null));
+    }
+
+    @GetMapping("/{classId}/requests")
+    public ResponseEntity<APIResponse<List<JoinRequestDTO>>> getPendingRequests(
+            @PathVariable Integer classId, @AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(new APIResponse<>(200, "Success", teacherClassService.getPendingJoinRequests(user.getUsername(), classId)));
+    }
+
+    @PostMapping("/requests/{requestId}/approve")
+    public ResponseEntity<APIResponse<Void>> approveRequest(
+            @PathVariable Integer requestId, @AuthenticationPrincipal UserDetails user) {
+        teacherClassService.approveJoinRequest(user.getUsername(), requestId);
+        return ResponseEntity.ok(new APIResponse<>(200, "Student approved", null));
+    }
+
+    @PostMapping("/requests/{requestId}/reject")
+    public ResponseEntity<APIResponse<Void>> rejectRequest(
+            @PathVariable Integer requestId, @AuthenticationPrincipal UserDetails user) {
+        teacherClassService.rejectJoinRequest(user.getUsername(), requestId);
+        return ResponseEntity.ok(new APIResponse<>(200, "Student rejected", null));
     }
 }

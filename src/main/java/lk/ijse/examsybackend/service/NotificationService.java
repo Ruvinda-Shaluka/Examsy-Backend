@@ -1,6 +1,8 @@
 package lk.ijse.examsybackend.service;
 
 import lk.ijse.examsybackend.dto.NotificationDTO;
+import lk.ijse.examsybackend.entity.Course;
+import lk.ijse.examsybackend.entity.Student;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -20,4 +22,9 @@ public interface NotificationService {
 
     @Transactional
     void dispatchAnnouncementNotifications(Integer courseId, String courseName, String teacherName, String content, boolean isUpdate);
+
+    void notifyTeacherOfJoinRequest(Course course, Student student);
+
+    @Transactional
+    void notifyStudentOfJoinResult(Student student, Course course, boolean isApproved);
 }
