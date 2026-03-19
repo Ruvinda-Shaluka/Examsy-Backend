@@ -203,9 +203,8 @@ public class TeacherExamServiceImpl implements TeacherExamService {
     }
 
     @Transactional(readOnly = true)
-    @Override
     public List<LiveStudentMonitorDTO> getLiveMonitorData(Integer examId, String teacherUsername) {
-        // 1. Security Check: Ensure the teacher actually owns this exam
+        // 1. Security Check
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new RuntimeException("Exam not found"));
 
@@ -213,27 +212,50 @@ public class TeacherExamServiceImpl implements TeacherExamService {
             throw new RuntimeException("Unauthorized: You do not own this exam.");
         }
 
-        // 2. Fetch all submissions
+        // 2. Get ALL students enrolled in the class, regardless of exam status
+        List<ClassEnrollment> enrollments = classEnrollmentRepo.findByCourseId(exam.getCourse().getId());
+
+        // 3. Get existing submissions for this exam
         List<ExamSubmission> submissions = examSubmissionRepo.findByExamId(examId);
 
-        // 3. Map to DTO
         List<LiveStudentMonitorDTO> monitorData = new ArrayList<>();
 
-        for (ExamSubmission sub : submissions) {
-            // Map backend status to frontend status strings
-            String uiStatus = sub.getStatus().equals("SUBMITTED") ? "submitted" :
-                    (sub.getStatus().equals("IN_PROGRESS") || sub.getStatus().equals("ACTIVE") ? "active" : "waiting");
+        // 4. Loop through ALL enrolled students
+        for (ClassEnrollment enrollment : enrollments) {
+            Student student = enrollment.getStudent();
 
-            int flags = sub.getSuspiciousEventCount() != null ? sub.getSuspiciousEventCount() : 0;
+            // Check if this specific student has a submission record yet
+            ExamSubmission studentSub = submissions.stream()
+                    .filter(sub -> sub.getStudent().getId().equals(student.getId()))
+                    .findFirst()
+                    .orElse(null);
 
-            monitorData.add(LiveStudentMonitorDTO.builder()
-                    .id(sub.getStudent().getId())
-                    .name(sub.getStudent().getFullName())
-                    .status(uiStatus)
-                    .flags(flags)
-                    .totalAwaySeconds(sub.getTotalTimeAwaySeconds() != null ? sub.getTotalTimeAwaySeconds() : 0)
-                    .flagged(flags > 0)
-                    .build());
+            if (studentSub != null) {
+                // Student HAS started or submitted
+                String uiStatus = studentSub.getStatus().equals("SUBMITTED") ? "submitted" :
+                        (studentSub.getStatus().equals("IN_PROGRESS") || studentSub.getStatus().equals("ACTIVE") ? "active" : "waiting");
+
+                int flags = studentSub.getSuspiciousEventCount() != null ? studentSub.getSuspiciousEventCount() : 0;
+
+                monitorData.add(LiveStudentMonitorDTO.builder()
+                        .id(student.getId())
+                        .name(student.getFullName())
+                        .status(uiStatus)
+                        .flags(flags)
+                        .totalAwaySeconds(studentSub.getTotalTimeAwaySeconds() != null ? studentSub.getTotalTimeAwaySeconds() : 0)
+                        .flagged(flags > 0)
+                        .build());
+            } else {
+                // Student HAS NOT started the exam yet
+                monitorData.add(LiveStudentMonitorDTO.builder()
+                        .id(student.getId())
+                        .name(student.getFullName())
+                        .status("not started") // Shows clearly in UI
+                        .flags(0)
+                        .totalAwaySeconds(0)
+                        .flagged(false)
+                        .build());
+            }
         }
 
         return monitorData;
