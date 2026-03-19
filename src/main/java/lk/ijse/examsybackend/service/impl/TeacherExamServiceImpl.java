@@ -161,8 +161,8 @@ public class TeacherExamServiceImpl implements TeacherExamService {
         for (Exam exam : allExams) {
             // Calculate Stats
             int totalStudents = classEnrollmentRepo.countByCourseId(exam.getCourse().getId());
-            int activeStudents = examSubmissionRepo.countByExamIdAndStatus(exam.getId(), List.of("IN_PROGRESS", "ACTIVE"));
-            int submissions = examSubmissionRepo.countByExamIdAndStatus(exam.getId(), List.of("COMPLETED", "SUBMITTED"));
+            int activeStudents = examSubmissionRepo.countByExamIdAndStatusIn(exam.getId(), List.of("IN_PROGRESS", "ACTIVE"));
+            int submissions = examSubmissionRepo.countByExamIdAndStatusIn(exam.getId(), List.of("COMPLETED", "SUBMITTED"));
 
             OngoingExamDTO dto = OngoingExamDTO.builder()
                     .id(exam.getId())
