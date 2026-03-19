@@ -1,5 +1,3 @@
-Notification count limit in the notification section limit to 15 by frontend
-
 Manage Exams ->Testing
 
 Student -> Ongoing Exams
