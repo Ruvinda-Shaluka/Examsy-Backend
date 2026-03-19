@@ -1,18 +1,20 @@
 package lk.ijse.examsybackend.service.impl;
 
-import lk.ijse.examsybackend.dto.ExamPublishDTO;
-import lk.ijse.examsybackend.dto.ExamSummaryDTO;
-import lk.ijse.examsybackend.dto.QuestionDTO;
-import lk.ijse.examsybackend.dto.UpdateExamDeadlineDTO;
+import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.entity.*;
+import lk.ijse.examsybackend.repository.ClassEnrollmentRepo;
 import lk.ijse.examsybackend.repository.CourseRepo;
 import lk.ijse.examsybackend.repository.ExamRepo;
+import lk.ijse.examsybackend.repository.ExamSubmissionRepo;
 import lk.ijse.examsybackend.service.TeacherExamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +24,9 @@ public class TeacherExamServiceImpl implements TeacherExamService {
 
     private final ExamRepo examRepository;
     private final CourseRepo courseRepository;
+    private final ClassEnrollmentRepo classEnrollmentRepo;
+    private final ExamSubmissionRepo examSubmissionRepo;
+
 
     @Transactional
     @Override
@@ -142,5 +147,50 @@ public class TeacherExamServiceImpl implements TeacherExamService {
         exam.setDurationMinutes(dto.getDurationMinutes());
 
         examRepository.save(exam);
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public OngoingExamGroupDTO getOngoingExams(String teacherUsername) {
+        // Fetch all "PUBLISHED" exams belonging to this teacher
+        List<Exam> allExams = examRepository.findByCourseTeacherUserAccountUsernameAndStatus(teacherUsername, "PUBLISHED");
+
+        List<OngoingExamDTO> realTimeList = new ArrayList<>();
+        List<OngoingExamDTO> deadlineList = new ArrayList<>();
+
+        for (Exam exam : allExams) {
+            // Calculate Stats
+            int totalStudents = classEnrollmentRepo.countByCourseId(exam.getCourse().getId());
+            int activeStudents = examSubmissionRepo.countByExamIdAndStatus(exam.getId(), "IN_PROGRESS");
+            int submissions = examSubmissionRepo.countByExamIdAndStatus(exam.getId(), "SUBMITTED");
+
+            OngoingExamDTO dto = OngoingExamDTO.builder()
+                    .id(exam.getId())
+                    .title(exam.getTitle())
+                    .className(exam.getCourse().getName() + " - " + exam.getCourse().getSectionName())
+                    .examMode(exam.getExamMode())
+                    .activeStudents(activeStudents)
+                    .submissions(submissions)
+                    .totalStudents(totalStudents)
+                    .build();
+
+            if ("REAL_TIME".equals(exam.getExamMode())) {
+                // Calculate remaining time for Real-Time exams
+                LocalDateTime endTime = exam.getScheduledStartTime().plusMinutes(exam.getDurationMinutes());
+                long minutesLeft = ChronoUnit.MINUTES.between(LocalDateTime.now(), endTime);
+                dto.setRemainingTime(minutesLeft > 0 ? minutesLeft + "m left" : "Ending soon");
+                realTimeList.add(dto);
+            } else {
+                // Format deadline for Deadline-based exams
+                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm");
+                dto.setDeadline(exam.getDeadlineTime() != null ? exam.getDeadlineTime().format(formatter) : "No Deadline");
+                deadlineList.add(dto);
+            }
+        }
+
+        return OngoingExamGroupDTO.builder()
+                .realTime(realTimeList)
+                .deadline(deadlineList)
+                .build();
     }
 }

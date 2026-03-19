@@ -21,4 +21,7 @@ public interface ExamRepo extends JpaRepository<Exam,Integer> {
     // For Students: Get exams for courses they are actively enrolled in
     @Query("SELECT e FROM Exam e JOIN ClassEnrollment ce ON e.course = ce.course WHERE ce.student.userAccount.username = :username")
     List<Exam> findExamsByStudentUsername(@Param("username") String username);
+
+    // Find all published exams for a specific teacher
+    List<Exam> findByCourseTeacherUserAccountUsernameAndStatus(String username, String status);
 }

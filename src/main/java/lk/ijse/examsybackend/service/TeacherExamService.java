@@ -2,6 +2,7 @@ package lk.ijse.examsybackend.service;
 
 import lk.ijse.examsybackend.dto.ExamPublishDTO;
 import lk.ijse.examsybackend.dto.ExamSummaryDTO;
+import lk.ijse.examsybackend.dto.OngoingExamGroupDTO;
 import lk.ijse.examsybackend.dto.UpdateExamDeadlineDTO;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,4 +20,7 @@ public interface TeacherExamService {
 
     @Transactional
     void updateExamTiming(String username, Integer examId, UpdateExamDeadlineDTO dto);
+
+    @Transactional(readOnly = true)
+    OngoingExamGroupDTO getOngoingExams(String teacherUsername);
 }

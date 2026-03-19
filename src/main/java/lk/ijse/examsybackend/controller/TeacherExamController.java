@@ -3,6 +3,7 @@ package lk.ijse.examsybackend.controller;
 import jakarta.validation.Valid;
 import lk.ijse.examsybackend.dto.ExamPublishDTO;
 import lk.ijse.examsybackend.dto.ExamSummaryDTO;
+import lk.ijse.examsybackend.dto.OngoingExamGroupDTO;
 import lk.ijse.examsybackend.dto.UpdateExamDeadlineDTO;
 import lk.ijse.examsybackend.service.TeacherExamService;
 import lk.ijse.examsybackend.util.APIResponse;
@@ -64,4 +65,9 @@ public class TeacherExamController {
         return ResponseEntity.ok(new APIResponse<>(200, "Exam timings updated successfully", null));
     }
 
+
+    @GetMapping("/ongoing")
+    public ResponseEntity<APIResponse<OngoingExamGroupDTO>> getOngoingExams(@AuthenticationPrincipal UserDetails user) {
+        return ResponseEntity.ok(new APIResponse<>(200, "Success", teacherExamService.getOngoingExams(user.getUsername())));
+    }
 }

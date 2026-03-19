@@ -8,4 +8,7 @@ public interface ExamSubmissionRepo extends JpaRepository<ExamSubmission,Integer
 
     Optional<ExamSubmission> findByExamIdAndStudentId(Integer examId, Integer studentId);
 
+    // Count students based on their progress status (e.g., "IN_PROGRESS" or "SUBMITTED")
+    int countByExamIdAndStatus(Integer examId, String status);
+
 }

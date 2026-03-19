@@ -18,4 +18,7 @@ public interface ClassEnrollmentRepo extends JpaRepository<ClassEnrollment,Integ
 
     Optional<ClassEnrollment> findByCourseIdAndStudentId(Integer courseId, Integer studentId);
 
+    // Count total students in a class
+    int countByCourseId(Integer courseId);
+
 }
