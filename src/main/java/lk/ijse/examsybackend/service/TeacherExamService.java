@@ -1,9 +1,6 @@
 package lk.ijse.examsybackend.service;
 
-import lk.ijse.examsybackend.dto.ExamPublishDTO;
-import lk.ijse.examsybackend.dto.ExamSummaryDTO;
-import lk.ijse.examsybackend.dto.OngoingExamGroupDTO;
-import lk.ijse.examsybackend.dto.UpdateExamDeadlineDTO;
+import lk.ijse.examsybackend.dto.*;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -23,4 +20,7 @@ public interface TeacherExamService {
 
     @Transactional(readOnly = true)
     OngoingExamGroupDTO getOngoingExams(String teacherUsername);
+
+    @Transactional(readOnly = true)
+    List<LiveStudentMonitorDTO> getLiveMonitorData(Integer examId, String teacherUsername);
 }

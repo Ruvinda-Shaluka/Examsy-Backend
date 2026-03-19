@@ -150,6 +150,7 @@ public class TeacherExamServiceImpl implements TeacherExamService {
     }
 
     @Transactional(readOnly = true)
+    @Override
     public OngoingExamGroupDTO getOngoingExams(String teacherUsername) {
         // Fetch all "PUBLISHED" exams belonging to this teacher
         List<Exam> allExams = examRepository.findByCourseTeacherUserAccountUsernameAndStatus(teacherUsername, "PUBLISHED");
@@ -199,5 +200,42 @@ public class TeacherExamServiceImpl implements TeacherExamService {
                 .realTime(realTimeList)
                 .deadline(deadlineList)
                 .build();
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<LiveStudentMonitorDTO> getLiveMonitorData(Integer examId, String teacherUsername) {
+        // 1. Security Check: Ensure the teacher actually owns this exam
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new RuntimeException("Exam not found"));
+
+        if (!exam.getCourse().getTeacher().getUserAccount().getUsername().equals(teacherUsername)) {
+            throw new RuntimeException("Unauthorized: You do not own this exam.");
+        }
+
+        // 2. Fetch all submissions
+        List<ExamSubmission> submissions = examSubmissionRepo.findByExamId(examId);
+
+        // 3. Map to DTO
+        List<LiveStudentMonitorDTO> monitorData = new ArrayList<>();
+
+        for (ExamSubmission sub : submissions) {
+            // Map backend status to frontend status strings
+            String uiStatus = sub.getStatus().equals("SUBMITTED") ? "submitted" :
+                    (sub.getStatus().equals("IN_PROGRESS") || sub.getStatus().equals("ACTIVE") ? "active" : "waiting");
+
+            int flags = sub.getSuspiciousEventCount() != null ? sub.getSuspiciousEventCount() : 0;
+
+            monitorData.add(LiveStudentMonitorDTO.builder()
+                    .id(sub.getStudent().getId())
+                    .name(sub.getStudent().getFullName())
+                    .status(uiStatus)
+                    .flags(flags)
+                    .totalAwaySeconds(sub.getTotalTimeAwaySeconds() != null ? sub.getTotalTimeAwaySeconds() : 0)
+                    .flagged(flags > 0)
+                    .build());
+        }
+
+        return monitorData;
     }
 }
