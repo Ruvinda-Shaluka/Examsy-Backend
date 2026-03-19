@@ -39,7 +39,7 @@ public class Teacher {
 
     @Builder.Default
     @Column(name = "notify_push")
-    private Boolean notifyPush = false;
+    private Boolean notifyPush = true;
 
     @Builder.Default
     @Column(name = "notify_security")

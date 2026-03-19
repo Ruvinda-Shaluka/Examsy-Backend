@@ -1,14 +1,12 @@
-Manage Exams ->Testing
+Google Oauth -> Register Teacher and Student
+- Register Teacher with Google Oauth
+- Register Student with Google Oauth
+- Login Form with Google Oauth
 
 Student -> Ongoing Exams
 - View Ongoing Exams details
 - Participate in Ongoing Exams
 - After Exam Submission, Make sure to Save the Exam Details
-
-Google Oauth -> Register Teacher and Student
-- Register Teacher with Google Oauth
-- Register Student with Google Oauth
-- Login Form with Google Oauth
 
 Teacher -> Grading
 -OCR Apache PDFBox and Tesseract OCR

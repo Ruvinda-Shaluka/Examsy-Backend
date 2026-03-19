@@ -46,7 +46,7 @@ public class Student {
     private Boolean notifyEmail = true;
 
     @Column(name = "notify_push")
-    private Boolean notifyPush = false;
+    private Boolean notifyPush = true;
 
     @Column(name = "notify_identity")
     private Boolean notifyIdentity = true;
