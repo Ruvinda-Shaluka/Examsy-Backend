@@ -27,4 +27,10 @@ public interface NotificationService {
 
     @Transactional
     void notifyStudentOfJoinResult(Student student, Course course, boolean isApproved);
+
+    @Transactional
+    void dispatchExamBroadcast(Integer examId, String teacherName, String courseName, String messageContent);
+
+    @Transactional
+    void dispatchStudentWarning(Integer studentId, String teacherName, String courseName, String messageContent);
 }

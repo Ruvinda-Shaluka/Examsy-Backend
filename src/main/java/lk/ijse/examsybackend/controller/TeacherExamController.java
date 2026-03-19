@@ -76,4 +76,23 @@ public class TeacherExamController {
         List<LiveStudentMonitorDTO> data = teacherExamService.getLiveMonitorData(examId, user.getUsername());
         return ResponseEntity.ok(new APIResponse<>(200, "Live data fetched", data));
     }
+
+    @PostMapping("/{examId}/broadcast")
+    public ResponseEntity<APIResponse<Void>> broadcastMessage(
+            @PathVariable Integer examId,
+            @Valid @RequestBody MessageRequestDTO dto,
+            @AuthenticationPrincipal UserDetails user) {
+        teacherExamService.broadcastToExam(examId, user.getUsername(), dto.getMessage());
+        return ResponseEntity.ok(new APIResponse<>(200, "Broadcast sent successfully", null));
+    }
+
+    @PostMapping("/{examId}/warn/{studentId}")
+    public ResponseEntity<APIResponse<Void>> warnStudent(
+            @PathVariable Integer examId,
+            @PathVariable Integer studentId,
+            @Valid @RequestBody MessageRequestDTO dto,
+            @AuthenticationPrincipal UserDetails user) {
+        teacherExamService.warnStudent(examId, studentId, user.getUsername(), dto.getMessage());
+        return ResponseEntity.ok(new APIResponse<>(200, "Warning sent successfully", null));
+    }
 }

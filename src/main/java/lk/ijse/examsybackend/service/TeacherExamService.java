@@ -23,4 +23,10 @@ public interface TeacherExamService {
 
     @Transactional(readOnly = true)
     List<LiveStudentMonitorDTO> getLiveMonitorData(Integer examId, String teacherUsername);
+
+    @Transactional
+    void broadcastToExam(Integer examId, String teacherUsername, String message);
+
+    @Transactional
+    void warnStudent(Integer examId, Integer studentId, String teacherUsername, String message);
 }

@@ -6,6 +6,7 @@ import lk.ijse.examsybackend.repository.ClassEnrollmentRepo;
 import lk.ijse.examsybackend.repository.CourseRepo;
 import lk.ijse.examsybackend.repository.ExamRepo;
 import lk.ijse.examsybackend.repository.ExamSubmissionRepo;
+import lk.ijse.examsybackend.service.NotificationService;
 import lk.ijse.examsybackend.service.TeacherExamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class TeacherExamServiceImpl implements TeacherExamService {
     private final CourseRepo courseRepository;
     private final ClassEnrollmentRepo classEnrollmentRepo;
     private final ExamSubmissionRepo examSubmissionRepo;
+    private final NotificationService notificationService;
 
 
     @Transactional
@@ -203,6 +205,7 @@ public class TeacherExamServiceImpl implements TeacherExamService {
     }
 
     @Transactional(readOnly = true)
+    @Override
     public List<LiveStudentMonitorDTO> getLiveMonitorData(Integer examId, String teacherUsername) {
         // 1. Security Check
         Exam exam = examRepository.findById(examId)
@@ -259,5 +262,29 @@ public class TeacherExamServiceImpl implements TeacherExamService {
         }
 
         return monitorData;
+    }
+
+    @Transactional
+    @Override
+    public void broadcastToExam(Integer examId, String teacherUsername, String message) {
+        Exam exam = examRepository.findById(examId).orElseThrow(() -> new RuntimeException("Exam not found"));
+
+        if (!exam.getCourse().getTeacher().getUserAccount().getUsername().equals(teacherUsername)) {
+            throw new RuntimeException("Unauthorized: You do not own this exam.");
+        }
+
+        notificationService.dispatchExamBroadcast(examId, exam.getCourse().getTeacher().getFullName(), exam.getCourse().getName(), message);
+    }
+
+    @Transactional
+    @Override
+    public void warnStudent(Integer examId, Integer studentId, String teacherUsername, String message) {
+        Exam exam = examRepository.findById(examId).orElseThrow(() -> new RuntimeException("Exam not found"));
+
+        if (!exam.getCourse().getTeacher().getUserAccount().getUsername().equals(teacherUsername)) {
+            throw new RuntimeException("Unauthorized: You do not own this exam.");
+        }
+
+        notificationService.dispatchStudentWarning(studentId, exam.getCourse().getTeacher().getFullName(), exam.getCourse().getName(), message);
     }
 }

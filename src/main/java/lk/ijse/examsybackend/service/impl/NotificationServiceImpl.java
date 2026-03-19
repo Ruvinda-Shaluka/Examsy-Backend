@@ -4,10 +4,7 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import lk.ijse.examsybackend.dto.NotificationDTO;
 import lk.ijse.examsybackend.entity.*;
-import lk.ijse.examsybackend.repository.ClassEnrollmentRepo;
-import lk.ijse.examsybackend.repository.NotificationRepo;
-import lk.ijse.examsybackend.repository.StudentRepo;
-import lk.ijse.examsybackend.repository.TeacherRepo;
+import lk.ijse.examsybackend.repository.*;
 import lk.ijse.examsybackend.service.NotificationService;
 import lombok.Builder;
 import lombok.Data;
@@ -31,6 +28,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final StudentRepo studentRepository;
     private final TeacherRepo teacherRepository;
     private final ClassEnrollmentRepo classEnrollmentRepository;
+    private final ExamSubmissionRepo examSubmissionRepository;
     private final JavaMailSender mailSender;
 
     @Data
@@ -286,6 +284,85 @@ public class NotificationServiceImpl implements NotificationService {
             mailSender.send(message);
         } catch (Exception e) {
             System.err.println("Failed to send announcement email to " + toEmail + ": " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    @Override
+    public void dispatchExamBroadcast(Integer examId, String teacherName, String courseName, String messageContent) {
+        // Find all students who have a submission record for this exam
+        List<ExamSubmission> submissions = examSubmissionRepository.findByExamId(examId);
+        List<Notification> notificationsToSave = new ArrayList<>();
+
+        for (ExamSubmission sub : submissions) {
+            UserAccount studentAccount = sub.getStudent().getUserAccount();
+            UserPrefs prefs = getUserPreferences(studentAccount.getUsername());
+
+            // 1. Push Notification
+            if (prefs.isPushEnabled()) {
+                notificationsToSave.add(Notification.builder()
+                        .userAccount(studentAccount)
+                        .title("Exam Broadcast: " + courseName)
+                        .message("Instructor " + teacherName + " says: " + messageContent)
+                        .isRead(false)
+                        .courseId(sub.getExam().getCourse().getId())
+                        .build());
+            }
+
+            // 2. Email Notification
+            if (prefs.isEmailEnabled() && studentAccount.getEmail() != null) {
+                sendExamEmail(studentAccount.getEmail(), teacherName, courseName, "Exam Broadcast", messageContent);
+            }
+        }
+
+        if (!notificationsToSave.isEmpty()) {
+            notificationRepository.saveAll(notificationsToSave);
+        }
+    }
+
+    @Transactional
+    @Override
+    public void dispatchStudentWarning(Integer studentId, String teacherName, String courseName, String messageContent) {
+        Student student = studentRepository.findById(studentId).orElseThrow(() -> new RuntimeException("Student not found"));
+        UserAccount studentAccount = student.getUserAccount();
+        UserPrefs prefs = getUserPreferences(studentAccount.getUsername());
+
+        // 1. Push Notification
+        if (prefs.isPushEnabled()) {
+            Notification notif = Notification.builder()
+                    .userAccount(studentAccount)
+                    .title("Urgent Exam Warning: " + courseName)
+                    .message("Direct warning from " + teacherName + ": " + messageContent)
+                    .isRead(false)
+                    .build();
+            notificationRepository.save(notif);
+        }
+
+        // 2. Email Notification
+        if (prefs.isEmailEnabled() && studentAccount.getEmail() != null) {
+            sendExamEmail(studentAccount.getEmail(), teacherName, courseName, "URGENT: Exam Warning", messageContent);
+        }
+    }
+
+    // Helper method to send the emails
+    private void sendExamEmail(String toEmail, String teacherName, String courseName, String subjectPrefix, String content) {
+        try {
+            jakarta.mail.internet.MimeMessage message = mailSender.createMimeMessage();
+            org.springframework.mail.javamail.MimeMessageHelper helper = new org.springframework.mail.javamail.MimeMessageHelper(message, true, "UTF-8");
+
+            helper.setFrom(new jakarta.mail.internet.InternetAddress("noreply@examsy.com", teacherName + " (Examsy)"));
+            helper.setTo(toEmail);
+            helper.setSubject(subjectPrefix + " - " + courseName);
+
+            String body = "Class: " + courseName + "\n" +
+                    "Instructor: " + teacherName + "\n\n" +
+                    "Message:\n" + content + "\n\n" +
+                    "Please acknowledge this message immediately.";
+
+            helper.setText(body);
+            mailSender.send(message);
+        } catch (Exception e) {
+            System.err.println("Failed to send exam notification to " + toEmail + ": " + e.getMessage());
         }
     }
 }
