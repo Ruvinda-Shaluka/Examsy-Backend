@@ -2,6 +2,7 @@ package lk.ijse.examsybackend.service;
 
 import lk.ijse.examsybackend.dto.NotificationDTO;
 import lk.ijse.examsybackend.entity.Course;
+import lk.ijse.examsybackend.entity.Exam;
 import lk.ijse.examsybackend.entity.Student;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,4 +34,7 @@ public interface NotificationService {
 
     @Transactional
     void dispatchStudentWarning(Integer studentId, String teacherName, String courseName, String messageContent);
+
+    @Transactional
+    void dispatchNewExamNotification(Exam exam, Course course, String teacherName);
 }

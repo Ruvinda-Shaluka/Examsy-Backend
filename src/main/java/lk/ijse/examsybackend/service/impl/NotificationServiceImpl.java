@@ -365,4 +365,44 @@ public class NotificationServiceImpl implements NotificationService {
             System.err.println("Failed to send exam notification to " + toEmail + ": " + e.getMessage());
         }
     }
+
+    @Transactional
+    @Override
+    public void dispatchNewExamNotification(Exam exam, Course course, String teacherName) {
+        // Grab everyone enrolled in the specific class where the exam was published
+        List<ClassEnrollment> enrollments = classEnrollmentRepository.findByCourseId(course.getId());
+        List<Notification> notificationsToSave = new ArrayList<>();
+
+        String examModeLabel = exam.getExamMode().equals("REAL_TIME") ? "Live Exam" : "Assignment";
+        String notificationTitle = "New " + examModeLabel + ": " + exam.getTitle();
+
+        String deadlineStr = exam.getDeadlineTime() != null ? " (Due: " + exam.getDeadlineTime().toString() + ")" : "";
+        String messageContent = teacherName + " has published a new " + examModeLabel.toLowerCase() + " in " + course.getName() + deadlineStr + ".";
+
+        for (ClassEnrollment enrollment : enrollments) {
+            UserAccount studentAccount = enrollment.getStudent().getUserAccount();
+            UserPrefs prefs = getUserPreferences(studentAccount.getUsername());
+
+            // 1. In-App Push Notification
+            if (prefs.isPushEnabled()) {
+                notificationsToSave.add(Notification.builder()
+                        .userAccount(studentAccount)
+                        .title(notificationTitle)
+                        .message(messageContent)
+                        .isRead(false)
+                        .courseId(course.getId()) // Link to the course dashboard
+                        .build());
+            }
+
+            // 2. Email Notification
+            if (prefs.isEmailEnabled() && studentAccount.getEmail() != null) {
+                // Reusing your existing helper method for exam emails!
+                sendExamEmail(studentAccount.getEmail(), teacherName, course.getName(), "New " + examModeLabel, messageContent);
+            }
+        }
+
+        if (!notificationsToSave.isEmpty()) {
+            notificationRepository.saveAll(notificationsToSave);
+        }
+    }
 }

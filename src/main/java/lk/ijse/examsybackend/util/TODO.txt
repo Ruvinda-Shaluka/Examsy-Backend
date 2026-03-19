@@ -1,11 +1,3 @@
-Teacher -> Ongoing Exams
-- View Ongoing Exams details
-- View Proctoring details
-- View Student's Proctoring details
-- View Student's Exam details
-
-Exam published notification to students
-
 Notification count limit in the notification section limit to 15 by frontend
 
 Manage Exams ->Testing

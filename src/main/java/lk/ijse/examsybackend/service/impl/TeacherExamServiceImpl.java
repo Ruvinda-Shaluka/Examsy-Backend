@@ -93,6 +93,9 @@ public class TeacherExamServiceImpl implements TeacherExamService {
 
             // Save everything cascaded!
             examRepository.save(exam);
+
+            // Trigger Notifications to the Class!
+            notificationService.dispatchNewExamNotification(exam, course, course.getTeacher().getFullName());
         }
     }
 
