@@ -150,7 +150,6 @@ public class TeacherExamServiceImpl implements TeacherExamService {
     }
 
     @Transactional(readOnly = true)
-    @Override
     public OngoingExamGroupDTO getOngoingExams(String teacherUsername) {
         // Fetch all "PUBLISHED" exams belonging to this teacher
         List<Exam> allExams = examRepository.findByCourseTeacherUserAccountUsernameAndStatus(teacherUsername, "PUBLISHED");
@@ -158,11 +157,12 @@ public class TeacherExamServiceImpl implements TeacherExamService {
         List<OngoingExamDTO> realTimeList = new ArrayList<>();
         List<OngoingExamDTO> deadlineList = new ArrayList<>();
 
+
         for (Exam exam : allExams) {
             // Calculate Stats
             int totalStudents = classEnrollmentRepo.countByCourseId(exam.getCourse().getId());
-            int activeStudents = examSubmissionRepo.countByExamIdAndStatus(exam.getId(), "IN_PROGRESS");
-            int submissions = examSubmissionRepo.countByExamIdAndStatus(exam.getId(), "SUBMITTED");
+            int activeStudents = examSubmissionRepo.countByExamIdAndStatus(exam.getId(), List.of("IN_PROGRESS", "ACTIVE"));
+            int submissions = examSubmissionRepo.countByExamIdAndStatus(exam.getId(), List.of("COMPLETED", "SUBMITTED"));
 
             OngoingExamDTO dto = OngoingExamDTO.builder()
                     .id(exam.getId())
@@ -174,14 +174,21 @@ public class TeacherExamServiceImpl implements TeacherExamService {
                     .totalStudents(totalStudents)
                     .build();
 
-            if ("REAL_TIME".equals(exam.getExamMode())) {
-                // Calculate remaining time for Real-Time exams
-                LocalDateTime endTime = exam.getScheduledStartTime().plusMinutes(exam.getDurationMinutes());
-                long minutesLeft = ChronoUnit.MINUTES.between(LocalDateTime.now(), endTime);
-                dto.setRemainingTime(minutesLeft > 0 ? minutesLeft + "m left" : "Ending soon");
+            String mode = exam.getExamMode();
+
+            if (mode != null && (mode.equalsIgnoreCase("REAL_TIME") || mode.equalsIgnoreCase("REAL-TIME"))) {
+                // Handle Real-Time Exams
+                if (exam.getScheduledStartTime() != null && exam.getDurationMinutes() != null) {
+                    LocalDateTime endTime = exam.getScheduledStartTime().plusMinutes(exam.getDurationMinutes());
+                    long minutesLeft = ChronoUnit.MINUTES.between(LocalDateTime.now(), endTime);
+                    dto.setRemainingTime(minutesLeft > 0 ? minutesLeft + "m left" : "Ending soon");
+                } else {
+                    dto.setRemainingTime("Time TBA");
+                }
                 realTimeList.add(dto);
+
             } else {
-                // Format deadline for Deadline-based exams
+                // Handle Deadline-Based Exams (Fallback for any other mode, like "DEADLINE")
                 DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd, yyyy HH:mm");
                 dto.setDeadline(exam.getDeadlineTime() != null ? exam.getDeadlineTime().format(formatter) : "No Deadline");
                 deadlineList.add(dto);
