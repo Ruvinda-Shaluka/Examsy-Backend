@@ -1,5 +1,6 @@
-proctoring feat: full tab size tracking
-- save proctoring data in the database
+proctoring feat:
+when clicking integrity column in teacher ongoing
+it should show the proctoring details of that student
 
 Google Oauth -> Register Teacher and Student
 - Register Teacher with Google Oauth
