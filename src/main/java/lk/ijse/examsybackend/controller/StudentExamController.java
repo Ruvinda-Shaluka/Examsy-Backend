@@ -53,4 +53,14 @@ public class StudentExamController {
 
         return ResponseEntity.ok(new APIResponse<>(200, "Vault loaded successfully", vaultData));
     }
+
+    @PostMapping("/{examId}/log-event")
+    public ResponseEntity<APIResponse<ProctoringStatsDTO>> logProctoringEvent(
+            @PathVariable Integer examId,
+            @Valid @RequestBody ProctoringLogDTO logDTO,
+            @AuthenticationPrincipal UserDetails user) {
+
+        ProctoringStatsDTO updatedStats = studentExamService.logProctoringEvent(examId, user.getUsername(), logDTO);
+        return ResponseEntity.ok(new APIResponse<>(200, "Proctoring event logged", updatedStats));
+    }
 }

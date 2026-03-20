@@ -203,4 +203,39 @@ public class StudentExamServiceImpl implements StudentExamService {
 
         return new VaultExamsResponseDTO(upcoming, available);
     }
+
+    @Transactional
+    @Override
+    public ProctoringStatsDTO logProctoringEvent(Integer examId, String studentUsername, ProctoringLogDTO dto) {
+        Student student = studentRepository.findByUserAccountUsername(studentUsername)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        // Find their active exam submission
+        ExamSubmission submission = submissionRepository.findByExamIdAndStudentId(examId, student.getId())
+                .orElseThrow(() -> new RuntimeException("Active exam session not found."));
+
+        // 1. Save the specific log
+        ProctoringLog log = ProctoringLog.builder()
+                .examSubmission(submission)
+                .eventType(dto.getEventType())
+                .durationSeconds(dto.getDurationSeconds())
+                .build();
+        proctoringLogRepository.save(log);
+
+        // 2. Update Cumulative Totals
+        int newFlagCount = (submission.getSuspiciousEventCount() == null ? 0 : submission.getSuspiciousEventCount()) + 1;
+        int newTotalTime = (submission.getTotalTimeAwaySeconds() == null ? 0 : submission.getTotalTimeAwaySeconds()) + dto.getDurationSeconds();
+
+        submission.setSuspiciousEventCount(newFlagCount);
+        submission.setTotalTimeAwaySeconds(newTotalTime);
+        submission.setProctoringStatus("SUSPICIOUS"); // Flag them for the teacher monitor!
+
+        submissionRepository.save(submission);
+
+        // 3. Return the new totals so the frontend modal can display them accurately
+        return ProctoringStatsDTO.builder()
+                .totalFlags(newFlagCount)
+                .totalAwaySeconds(newTotalTime)
+                .build();
+    }
 }
