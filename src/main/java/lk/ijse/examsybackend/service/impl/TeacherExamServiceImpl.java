@@ -2,10 +2,7 @@ package lk.ijse.examsybackend.service.impl;
 
 import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.entity.*;
-import lk.ijse.examsybackend.repository.ClassEnrollmentRepo;
-import lk.ijse.examsybackend.repository.CourseRepo;
-import lk.ijse.examsybackend.repository.ExamRepo;
-import lk.ijse.examsybackend.repository.ExamSubmissionRepo;
+import lk.ijse.examsybackend.repository.*;
 import lk.ijse.examsybackend.service.NotificationService;
 import lk.ijse.examsybackend.service.TeacherExamService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +24,7 @@ public class TeacherExamServiceImpl implements TeacherExamService {
     private final CourseRepo courseRepository;
     private final ClassEnrollmentRepo classEnrollmentRepo;
     private final ExamSubmissionRepo examSubmissionRepo;
+    private final ProctoringLogRepo proctoringLogRepo;
     private final NotificationService notificationService;
 
 
@@ -230,18 +228,26 @@ public class TeacherExamServiceImpl implements TeacherExamService {
         for (ClassEnrollment enrollment : enrollments) {
             Student student = enrollment.getStudent();
 
-            // Check if this specific student has a submission record yet
             ExamSubmission studentSub = submissions.stream()
                     .filter(sub -> sub.getStudent().getId().equals(student.getId()))
                     .findFirst()
                     .orElse(null);
 
             if (studentSub != null) {
-                // Student HAS started or submitted
                 String uiStatus = studentSub.getStatus().equals("SUBMITTED") ? "submitted" :
                         (studentSub.getStatus().equals("IN_PROGRESS") || studentSub.getStatus().equals("ACTIVE") ? "active" : "waiting");
 
                 int flags = studentSub.getSuspiciousEventCount() != null ? studentSub.getSuspiciousEventCount() : 0;
+
+                // 🟢 NEW: Fetch the specific log history for this student's submission
+                List<ProctoringLog> rawLogs = proctoringLogRepo.findByExamSubmissionId(studentSub.getId());
+                List<ProctoringLogDetailDTO> history = rawLogs.stream().map(log ->
+                        ProctoringLogDetailDTO.builder()
+                                .eventType(log.getEventType())
+                                .durationSeconds(log.getDurationSeconds())
+                                .recordedAt(log.getRecordedAt())
+                                .build()
+                ).collect(java.util.stream.Collectors.toList());
 
                 monitorData.add(LiveStudentMonitorDTO.builder()
                         .id(student.getId())
@@ -250,16 +256,17 @@ public class TeacherExamServiceImpl implements TeacherExamService {
                         .flags(flags)
                         .totalAwaySeconds(studentSub.getTotalTimeAwaySeconds() != null ? studentSub.getTotalTimeAwaySeconds() : 0)
                         .flagged(flags > 0)
+                        .proctoringHistory(history) // 🟢 Attach history to DTO
                         .build());
             } else {
-                // Student HAS NOT started the exam yet
                 monitorData.add(LiveStudentMonitorDTO.builder()
                         .id(student.getId())
                         .name(student.getFullName())
-                        .status("not started") // Shows clearly in UI
+                        .status("not started")
                         .flags(0)
                         .totalAwaySeconds(0)
                         .flagged(false)
+                        .proctoringHistory(new ArrayList<>()) // Empty history
                         .build());
             }
         }
