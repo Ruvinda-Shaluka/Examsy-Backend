@@ -1,6 +1,3 @@
-Sign In -> When Signing in manually
-- Auto generate the student ID and teacher ID
-
 proctoring feat: full tab size tracking
 - save proctoring data in the database
 
