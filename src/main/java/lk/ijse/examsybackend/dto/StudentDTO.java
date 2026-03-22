@@ -54,4 +54,5 @@ public class StudentDTO {
     private Boolean notifyEmail;
     private Boolean notifyPush;
     private Boolean notifyIdentity;
+
 }
