@@ -1,6 +1,7 @@
 package lk.ijse.examsybackend.repository;
 
 import lk.ijse.examsybackend.entity.Student;
+import lk.ijse.examsybackend.entity.UserAccount;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -11,4 +12,6 @@ public interface StudentRepo extends JpaRepository<Student,Integer> {
 
     @Query("SELECT s FROM Student s WHERE s.userAccount.username = :username")
     Optional<Student> findByUserAccountUsername(@Param("username") String username);
+
+    Optional<Student> findByUserAccount(UserAccount userAccount);
 }

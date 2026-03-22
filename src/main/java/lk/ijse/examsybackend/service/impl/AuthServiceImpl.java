@@ -1,9 +1,10 @@
 package lk.ijse.examsybackend.service.impl;
 
-import lk.ijse.examsybackend.dto.AuthDTO;
-import lk.ijse.examsybackend.dto.AuthResponseDTO;
-import lk.ijse.examsybackend.dto.StudentRegisterDTO;
-import lk.ijse.examsybackend.dto.TeacherRegisterDTO;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
+import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
+import com.google.api.client.http.javanet.NetHttpTransport;
+import com.google.api.client.json.gson.GsonFactory;
+import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.entity.Role;
 import lk.ijse.examsybackend.entity.Student;
 import lk.ijse.examsybackend.entity.Teacher;
@@ -14,6 +15,7 @@ import lk.ijse.examsybackend.repository.UserAccountRepo;
 import lk.ijse.examsybackend.service.AuthService;
 import lk.ijse.examsybackend.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -22,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +36,9 @@ public class AuthServiceImpl implements AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
     private final JavaMailSender mailSender;
+
+    @Value("${spring.security.oauth2.client.registration.google.client-id}")
+    private String googleClientId;
 
     /**
      * Authenticates a user (Student, Teacher, or Admin) and returns a JWT token.
@@ -201,5 +207,124 @@ public class AuthServiceImpl implements AuthService {
         user.setResetCodeExpiresAt(null);
 
         userAccountRepository.save(user);
+    }
+
+    @Transactional
+    @Override
+    public AuthResponseDTO authenticateWithGoogle(GoogleAuthDTO dto) {
+        try {
+            // 1. Verify the Google Token
+            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
+                    .setAudience(Collections.singletonList(googleClientId))
+                    .build();
+
+            GoogleIdToken idToken = verifier.verify(dto.getToken());
+            if (idToken == null) {
+                throw new RuntimeException("Invalid Google token");
+            }
+
+            GoogleIdToken.Payload payload = idToken.getPayload();
+            String email = payload.getEmail();
+            String name = (String) payload.get("name");
+
+            // 🟢 NEW: Extract the profile picture URL from the Google payload
+            String profilePictureUrl = (String) payload.get("picture");
+
+            // Generate a safe username from the email
+            String username = email.split("@")[0];
+
+            // 2. Check if the user already exists in Examsy
+            UserAccount userAccount = userAccountRepository.findByUsernameOrEmail(email, email).orElse(null);
+
+            if (userAccount == null) {
+                // 3. User does not exist, auto-register them based on the requested role
+                Role requestedRole = dto.getRole().equalsIgnoreCase("teacher") ? Role.TEACHER : Role.STUDENT;
+
+                userAccount = UserAccount.builder()
+                        .username(username)
+                        .email(email)
+                        .passwordHash(passwordEncoder.encode(java.util.UUID.randomUUID().toString())) // Random safe password
+                        .role(requestedRole)
+                        .authProvider("GOOGLE")
+                        .isActive(true)
+                        .build();
+
+                userAccount = userAccountRepository.save(userAccount);
+
+                // Create the specific profile (Student or Teacher)
+                if (requestedRole == Role.STUDENT) {
+
+                    String uniqueId = generateStudentIndexNumber();
+
+                    Student student = Student.builder()
+                            .userAccount(userAccount)
+                            .fullName(name)
+                            .studentIdentificationNumber(uniqueId)
+                            .profilePictureUrl(profilePictureUrl)
+                            .notifyEmail(true)
+                            .notifyPush(true)
+                            .notifyIdentity(true)
+                            .build();
+                    studentRepository.save(student);
+
+                } else {
+
+                    String uniqueId = generateCorporateInstructorId();
+
+                    Teacher teacher = Teacher.builder()
+                            .userAccount(userAccount)
+                            .fullName(name)
+                            .instructorId(uniqueId)
+                            .profilePictureUrl(profilePictureUrl)
+                            .notifyEmail(true)
+                            .notifyPush(true)
+                            .notifySecurity(true)
+                            .build();
+                    teacherRepository.save(teacher);
+                }
+            } else {
+                // If they exist but registered locally, optionally update authProvider to "GOOGLE_AND_LOCAL"
+                if ("LOCAL".equals(userAccount.getAuthProvider())) {
+                    userAccount.setAuthProvider("GOOGLE_AND_LOCAL");
+                    userAccountRepository.save(userAccount);
+                }
+
+                 //If you want to update student picture every time they log in via Google
+                 if (userAccount.getRole() == Role.STUDENT) {
+                     Student student = studentRepository.findByUserAccount(userAccount).get();
+                     student.setProfilePictureUrl(profilePictureUrl);
+                     studentRepository.save(student);
+                 }
+
+                //If you want to update teacher picture every time they log in via Google
+                if (userAccount.getRole() == Role.TEACHER) {
+                    Teacher teacher = teacherRepository.findByUserAccount(userAccount).get();
+                    teacher.setProfilePictureUrl(profilePictureUrl);
+                    teacherRepository.save(teacher);
+                }
+
+            }
+
+            // 4. Generate Examsy JWT Token for the verified user
+            String token = jwtUtil.generateToken(userAccount.getUsername());
+            return new AuthResponseDTO(token, userAccount.getRole().name());
+
+        } catch (Exception e) {
+            throw new RuntimeException("Google authentication failed: " + e.getMessage());
+        }
+    }
+
+    // Helper function to generate a unique Student Index Number matching frontend logic
+    private String generateStudentIndexNumber() {
+        int year = java.time.Year.now().getValue();
+        String uniqueHash = Long.toString(System.currentTimeMillis(), 36).toUpperCase();
+        return "STU-" + year + "-" + uniqueHash;
+    }
+
+    // Helper function to generate the Corporate Format ID matching frontend logic
+    private String generateCorporateInstructorId() {
+        int year = java.time.Year.now().getValue();
+        String uniqueHash = Long.toString(System.currentTimeMillis(), 36).toUpperCase();
+        return "EMP-" + year + "-" + uniqueHash;
     }
 }

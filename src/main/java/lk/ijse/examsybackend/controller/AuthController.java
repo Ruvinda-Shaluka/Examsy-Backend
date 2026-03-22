@@ -49,4 +49,10 @@ public class AuthController {
         authService.resetPassword(dto.getEmail(), dto.getCode(), dto.getNewPassword());
         return ResponseEntity.ok(new APIResponse(200, "Password updated successfully", null));
     }
+
+    @PostMapping("/google")
+    public ResponseEntity<APIResponse> authenticateGoogle(@RequestBody GoogleAuthDTO dto) {
+        return ResponseEntity.ok(new APIResponse(200, "OK", authService.authenticateWithGoogle(dto)));
+    }
+
 }

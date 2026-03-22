@@ -1,9 +1,6 @@
 package lk.ijse.examsybackend.service;
 
-import lk.ijse.examsybackend.dto.AuthDTO;
-import lk.ijse.examsybackend.dto.AuthResponseDTO;
-import lk.ijse.examsybackend.dto.StudentRegisterDTO;
-import lk.ijse.examsybackend.dto.TeacherRegisterDTO;
+import lk.ijse.examsybackend.dto.*;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface AuthService {
@@ -25,4 +22,7 @@ public interface AuthService {
     // Update the Password
     @Transactional
     void resetPassword(String email, String code, String newPassword);
+
+    @Transactional
+    AuthResponseDTO authenticateWithGoogle(GoogleAuthDTO dto);
 }
