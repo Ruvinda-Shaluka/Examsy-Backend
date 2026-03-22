@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 public class StudentProfileServiceImpl implements StudentProfileService {
 
     private final StudentRepo studentRepository;
-    private final ModelMapper modelMapper; // Inject ModelMapper here!
+    private final ModelMapper modelMapper;
 
     @Override
     public StudentDTO getMyProfile(String username) {
@@ -33,6 +33,10 @@ public class StudentProfileServiceImpl implements StudentProfileService {
         if (updateData.getMajor() != null) student.setMajor(updateData.getMajor());
         if (updateData.getAcademicBio() != null) student.setAcademicBio(updateData.getAcademicBio());
         if (updateData.getProfilePictureUrl() != null) student.setProfilePictureUrl(updateData.getProfilePictureUrl());
+
+        if (updateData.getGender() != null) student.setGender(updateData.getGender());
+        if (updateData.getDateOfBirth() != null) student.setDateOfBirth(updateData.getDateOfBirth());
+        if (updateData.getGrade() != null) student.setGrade(updateData.getGrade());
 
         // Notification Preferences
         if (updateData.getNotifyEmail() != null) student.setNotifyEmail(updateData.getNotifyEmail());
