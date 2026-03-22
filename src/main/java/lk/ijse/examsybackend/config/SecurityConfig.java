@@ -10,7 +10,6 @@ import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -26,10 +25,12 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    // We only inject these three. We DO NOT inject the AuthenticationProvider here anymore!
     private final UserDetailsService userDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
     private final PasswordEncoder passwordEncoder;
+
+    private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
+    private final CustomOAuth2AuthorizationRequestResolver customAuthorizationRequestResolver;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -50,10 +51,29 @@ public class SecurityConfig {
                         // Keep your public login/signup endpoints
                         .requestMatchers("/api/v1/auth/**").permitAll()
 
+                        // 🟢 EXPLICITLY ALLOW OAUTH2 ENDPOINTS
+                        // Without these, Spring will block the Google redirect and throw a 403!
+                        .requestMatchers("/oauth2/**", "/login/oauth2/code/**").permitAll()
+
                         // Lock down everything else
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+
+                // ⚠️ CRITICAL CHANGE: I removed the strict STATELESS session policy here.
+                // .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                // Why? OAuth2 login requires a temporary, tiny session to store a CSRF "state" parameter
+                // between the time the user leaves for Google and the time they come back.
+                // Your JwtAuthFilter will still protect your actual API endpoints flawlessly.
+
+                // 🟢 ADD THE OAUTH2 LOGIN CONFIGURATION
+                .oauth2Login(oauth2 -> oauth2
+                        .authorizationEndpoint(authEndpoint -> authEndpoint
+                                // Wire up the custom resolver to catch the "?role=" parameter from React
+                                .authorizationRequestResolver(customAuthorizationRequestResolver)
+                        )
+                        // Wire up the success handler to generate the JWT and redirect back to React
+                        .successHandler(oAuth2AuthenticationSuccessHandler)
+                )
 
                 // Call the method directly here to break the circular dependency!
                 .authenticationProvider(authenticateProvider())

@@ -1,9 +1,5 @@
 package lk.ijse.examsybackend.service.impl;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdToken;
-import com.google.api.client.googleapis.auth.oauth2.GoogleIdTokenVerifier;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.gson.GsonFactory;
 import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.entity.Role;
 import lk.ijse.examsybackend.entity.Student;
@@ -24,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 
 @Service
 @RequiredArgsConstructor
@@ -207,111 +202,6 @@ public class AuthServiceImpl implements AuthService {
         user.setResetCodeExpiresAt(null);
 
         userAccountRepository.save(user);
-    }
-
-    @Transactional
-    @Override
-    public AuthResponseDTO authenticateWithGoogle(GoogleAuthDTO dto) {
-        try {
-            // 1. Verify the Google Token
-            GoogleIdTokenVerifier verifier = new GoogleIdTokenVerifier.Builder(new NetHttpTransport(), new GsonFactory())
-                    .setAudience(Collections.singletonList(googleClientId))
-                    .build();
-
-            GoogleIdToken idToken = verifier.verify(dto.getToken());
-            if (idToken == null) {
-                throw new RuntimeException("Invalid Google token");
-            }
-
-            GoogleIdToken.Payload payload = idToken.getPayload();
-            String email = payload.getEmail();
-            String name = (String) payload.get("name");
-
-            // 🟢 NEW: Extract the profile picture URL from the Google payload
-            String profilePictureUrl = (String) payload.get("picture");
-
-            // Generate a safe username from the email
-            String username = email.split("@")[0];
-
-            // 2. Check if the user already exists in Examsy
-            UserAccount userAccount = userAccountRepository.findByUsernameOrEmail(email, email).orElse(null);
-
-            if (userAccount == null) {
-                // 3. User does not exist, auto-register them based on the requested role
-                Role requestedRole = dto.getRole().equalsIgnoreCase("teacher") ? Role.TEACHER : Role.STUDENT;
-
-                userAccount = UserAccount.builder()
-                        .username(username)
-                        .email(email)
-                        .passwordHash(passwordEncoder.encode(java.util.UUID.randomUUID().toString())) // Random safe password
-                        .role(requestedRole)
-                        .authProvider("GOOGLE")
-                        .isActive(true)
-                        .build();
-
-                userAccount = userAccountRepository.save(userAccount);
-
-                // Create the specific profile (Student or Teacher)
-                if (requestedRole == Role.STUDENT) {
-
-                    String uniqueId = generateStudentIndexNumber();
-
-                    Student student = Student.builder()
-                            .userAccount(userAccount)
-                            .fullName(name)
-                            .studentIdentificationNumber(uniqueId)
-                            .profilePictureUrl(profilePictureUrl)
-                            .notifyEmail(true)
-                            .notifyPush(true)
-                            .notifyIdentity(true)
-                            .build();
-                    studentRepository.save(student);
-
-                } else {
-
-                    String uniqueId = generateCorporateInstructorId();
-
-                    Teacher teacher = Teacher.builder()
-                            .userAccount(userAccount)
-                            .fullName(name)
-                            .instructorId(uniqueId)
-                            .profilePictureUrl(profilePictureUrl)
-                            .notifyEmail(true)
-                            .notifyPush(true)
-                            .notifySecurity(true)
-                            .build();
-                    teacherRepository.save(teacher);
-                }
-            } else {
-                // If they exist but registered locally, optionally update authProvider to "GOOGLE_AND_LOCAL"
-                if ("LOCAL".equals(userAccount.getAuthProvider())) {
-                    userAccount.setAuthProvider("GOOGLE_AND_LOCAL");
-                    userAccountRepository.save(userAccount);
-                }
-
-                 //If you want to update student picture every time they log in via Google
-                 if (userAccount.getRole() == Role.STUDENT) {
-                     Student student = studentRepository.findByUserAccount(userAccount).get();
-                     student.setProfilePictureUrl(profilePictureUrl);
-                     studentRepository.save(student);
-                 }
-
-                //If you want to update teacher picture every time they log in via Google
-                if (userAccount.getRole() == Role.TEACHER) {
-                    Teacher teacher = teacherRepository.findByUserAccount(userAccount).get();
-                    teacher.setProfilePictureUrl(profilePictureUrl);
-                    teacherRepository.save(teacher);
-                }
-
-            }
-
-            // 4. Generate Examsy JWT Token for the verified user
-            String token = jwtUtil.generateToken(userAccount.getUsername());
-            return new AuthResponseDTO(token, userAccount.getRole().name());
-
-        } catch (Exception e) {
-            throw new RuntimeException("Google authentication failed: " + e.getMessage());
-        }
     }
 
     // Helper function to generate a unique Student Index Number matching frontend logic

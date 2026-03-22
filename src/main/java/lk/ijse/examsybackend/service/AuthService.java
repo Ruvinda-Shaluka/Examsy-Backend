@@ -23,6 +23,4 @@ public interface AuthService {
     @Transactional
     void resetPassword(String email, String code, String newPassword);
 
-    @Transactional
-    AuthResponseDTO authenticateWithGoogle(GoogleAuthDTO dto);
 }
