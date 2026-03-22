@@ -1,11 +1,4 @@
-Google Oauth -> Register Teacher and Student
-- Register Teacher with Google Oauth
-- Register Student with Google Oauth
-- Login Form with Google Oauth
-
 Student -> Ongoing Exams
-- View Ongoing Exams details
-- Participate in Ongoing Exams
 - After Exam Submission, Make sure to Save the Exam Details
 
 Teacher -> Grading
@@ -16,6 +9,10 @@ Teacher -> Grading
 Student -> Mock Exams
 - Generate Mock Exams
 - Do MCQ Mock Exams
+
+MCQ Exams -> Grading logic
+- Grading logic for other Exams
+- Calculate cumulative gpa for students
 
 Teacher Classroom -> Grades at last
 
