@@ -18,6 +18,7 @@ public class AdminDashboardServiceImpl implements AdminDashboardService {
     private final UserAccountRepo userAccountRepository;
     private final ReportRepo reportRepository;
 
+    @Override
     public AdminDashboardDTO getDashboardMetrics() {
         long totalStudents = userAccountRepository.countByRoleAndIsActiveTrue(Role.STUDENT);
         long activeTeachers = userAccountRepository.countByRoleAndIsActiveTrue(Role.TEACHER);
