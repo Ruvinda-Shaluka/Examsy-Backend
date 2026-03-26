@@ -1,5 +1,6 @@
 package lk.ijse.examsybackend.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lk.ijse.examsybackend.dto.StudentDTO;
 import lk.ijse.examsybackend.dto.TeacherDTO;
 import lk.ijse.examsybackend.entity.Student;
@@ -56,5 +57,10 @@ public class ApplicationConfig {
         });
 
         return modelMapper;
+    }
+
+    @Bean
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper();
     }
 }
