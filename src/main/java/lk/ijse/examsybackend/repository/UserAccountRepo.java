@@ -1,5 +1,6 @@
 package lk.ijse.examsybackend.repository;
 
+import lk.ijse.examsybackend.entity.Role;
 import lk.ijse.examsybackend.entity.UserAccount;
 import org.springframework.data.jpa.repository.JpaRepository;
 
@@ -11,4 +12,6 @@ public interface UserAccountRepo extends JpaRepository<UserAccount,Integer> {
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
     Optional<UserAccount> findByUsernameOrEmail(String username, String email);
+    long countByRoleAndIsActiveTrue(Role role);
+    long count();
 }
