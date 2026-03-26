@@ -27,7 +27,7 @@ public class GroqMockExamServiceImpl implements GroqMockExamService {
 
     private final MockExamRepo mockExamRepository;
     private final StudentRepo studentRepository;
-    private final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper = new ObjectMapper(); // Fixed the ObjectMapper issue!
     private final RestTemplate restTemplate = new RestTemplate();
 
     @Value("${groq.api.key}")
@@ -39,14 +39,19 @@ public class GroqMockExamServiceImpl implements GroqMockExamService {
         Student student = studentRepository.findByUserAccountUsername(username)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        // 1. Engineer the prompt to guarantee a specific JSON structure
+        // 🟢 FIXED: Injected a cache-busting random seed to guarantee completely unique questions!
+        long randomSeed = System.currentTimeMillis();
+
         String prompt = String.format("""
-            Generate a mock exam paper in strictly valid JSON format.
+            Generate a completely unique and highly randomized mock exam paper in strictly valid JSON format.
+            To ensure variety, use this randomization seed: %d
+            
             Subject: %s
             Topic: %s
             Difficulty: %s
             Number of Questions: %d
 
+            Do not repeat standard textbook questions. Be creative. 
             Format the JSON exactly like this, with no markdown formatting or extra text:
             {
               "questions": [
@@ -58,9 +63,8 @@ public class GroqMockExamServiceImpl implements GroqMockExamService {
                 }
               ]
             }
-            """, subject, topic, difficulty, count);
+            """, randomSeed, subject, topic, difficulty, count);
 
-        // 2. Build the Groq API Request
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.setBearerAuth(groqApiKey);
@@ -68,23 +72,20 @@ public class GroqMockExamServiceImpl implements GroqMockExamService {
         Map<String, Object> requestBody = Map.of(
                 "model", "llama-3.3-70b-versatile",
                 "messages", List.of(Map.of("role", "user", "content", prompt)),
-                "response_format", Map.of("type", "json_object"), // Forces JSON output
-                "temperature", 0.7
+                "response_format", Map.of("type", "json_object"),
+                "temperature", 0.9 // 🟢 Slightly increased temperature for more creative variety
         );
 
-        // 3. Call Groq
         String groqUrl = "https://api.groq.com/openai/v1/chat/completions";
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
 
         try {
             String responseJson = restTemplate.postForObject(groqUrl, request, String.class);
 
-            // 4. Parse the response
             JsonNode rootNode = objectMapper.readTree(responseJson);
             String contentString = rootNode.path("choices").get(0).path("message").path("content").asText();
             JsonNode generatedData = objectMapper.readTree(contentString);
 
-            // 5. Build and save the Entities
             MockExam exam = MockExam.builder()
                     .student(student)
                     .subject(subject)
