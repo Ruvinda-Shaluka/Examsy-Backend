@@ -30,6 +30,9 @@ public class Question {
     @Column(name = "order_index")
     private Integer orderIndex;
 
+    @Column(name = "model_answer", columnDefinition = "TEXT")
+    private String modelAnswer;
+
     // Cascade options
     @OneToMany(mappedBy = "question", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<QuestionOption> options;

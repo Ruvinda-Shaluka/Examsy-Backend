@@ -9,5 +9,6 @@ public class QuestionDTO {
     private String questionText;
     private BigDecimal points;
     private List<String> options; // E.g., ["Option 1", "Option 2"]
+    private String modelAnswer;
     private Integer correctOptionIndex; // Index of the correct answer (0, 1, 2...)
 }

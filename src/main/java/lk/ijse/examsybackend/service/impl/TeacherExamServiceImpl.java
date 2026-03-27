@@ -69,6 +69,7 @@ public class TeacherExamServiceImpl implements TeacherExamService {
                             .questionText(qDto.getQuestionText())
                             .questionType(dto.getExamType())
                             .points(qDto.getPoints())
+                            .modelAnswer(qDto.getModelAnswer())
                             .orderIndex(orderIdx++)
                             .build();
 
