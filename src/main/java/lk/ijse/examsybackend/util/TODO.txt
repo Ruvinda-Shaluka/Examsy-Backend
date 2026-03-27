@@ -6,9 +6,15 @@ Teacher -> Grading
 -Cosine Similarity
 -Grade Calculation
 
-Student -> Mock Exams
-- Generate Mock Exams
-- Do MCQ Mock Exams
+Short Answer Exams -> Teacher must input the correct answer and groq will compare the student's
+ answer with the correct answer and calculate the grade based on the similarity score.
+
+ PDF Exams -> Grading
+ 👉 Use Semi-Automatic Grading
+ AI suggests marks ✅
+ Teacher reviews before finalizing ✅
+ OCR: Tesseract
+ AI: Groq
 
 MCQ Exams -> Grading logic
 - Grading logic for other Exams
