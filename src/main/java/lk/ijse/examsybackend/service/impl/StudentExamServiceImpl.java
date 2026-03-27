@@ -1,5 +1,6 @@
 package lk.ijse.examsybackend.service.impl;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.entity.*;
 import lk.ijse.examsybackend.repository.*;
@@ -9,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +25,7 @@ public class StudentExamServiceImpl implements StudentExamService {
     private final QuestionOptionRepo optionRepository;
     private final StudentRepo studentRepository;
     private final ProctoringLogRepo proctoringLogRepository;
+    private final GroqMockExamServiceImpl groqMockExamService;
 
     // --- 1. PROCTORING: Track Cheating / Tab Switches ---
     @Transactional
@@ -125,7 +128,7 @@ public class StudentExamServiceImpl implements StudentExamService {
                         .answerText(ansDto.getAnswerText())
                         .build();
 
-                // Auto-Grade MCQ logic
+                // AUTO-GRADE MCQ
                 if ("MCQ".equalsIgnoreCase(exam.getExamType()) && ansDto.getSelectedOptionId() != null) {
                     QuestionOption selectedOpt = optionRepository.findById(ansDto.getSelectedOptionId()).orElse(null);
                     answerRecord.setSelectedOption(selectedOpt);
@@ -138,6 +141,37 @@ public class StudentExamServiceImpl implements StudentExamService {
                         answerRecord.setScoreAwarded(BigDecimal.ZERO);
                     }
                 }
+                // AUTO-GRADE SHORT ANSWER VIA GROQ
+                else if ("SHORT".equalsIgnoreCase(exam.getExamType()) && ansDto.getAnswerText() != null) {
+                    BigDecimal maxPoints = question.getPoints() != null ? question.getPoints() : BigDecimal.valueOf(5);
+
+                    try {
+                        // Call our new Groq service!
+                        JsonNode aiResult = groqMockExamService.gradeShortAnswer(
+                                question.getQuestionText(),
+                                question.getModelAnswer(),
+                                ansDto.getAnswerText(),
+                                maxPoints
+                        );
+
+                        BigDecimal awardedScore = BigDecimal.valueOf(aiResult.path("awarded_score").asDouble());
+                        String feedback = aiResult.path("feedback").asText();
+
+                        // Cap the score just in case the AI hallucinates a higher number
+                        if (awardedScore.compareTo(maxPoints) > 0) awardedScore = maxPoints;
+                        if (awardedScore.compareTo(BigDecimal.ZERO) < 0) awardedScore = BigDecimal.ZERO;
+
+                        answerRecord.setScoreAwarded(awardedScore);
+                        answerRecord.setFeedback(feedback); // Assuming you added this to your entity!
+                        totalEarnedScore = totalEarnedScore.add(awardedScore);
+
+                    } catch (Exception e) {
+                        // Fallback if AI fails: give 0 and flag for manual review
+                        answerRecord.setScoreAwarded(BigDecimal.ZERO);
+                        answerRecord.setFeedback("AI Grading Failed. Pending manual teacher review.");
+                    }
+                }
+
                 answerRepository.save(answerRecord);
             }
         }
@@ -147,9 +181,27 @@ public class StudentExamServiceImpl implements StudentExamService {
         submission.setStatus("SUBMITTED");
         submission.setPdfSubmissionUrl(dto.getPdfSubmissionUrl());
 
-        if ("MCQ".equalsIgnoreCase(exam.getExamType())) {
+        // Calculate Grades for MCQ and SHORT
+        String finalGrade = "N/A";
+        BigDecimal percentage = BigDecimal.ZERO;
+
+        if ("MCQ".equalsIgnoreCase(exam.getExamType()) || "SHORT".equalsIgnoreCase(exam.getExamType())) {
             submission.setCalculatedScore(totalEarnedScore);
-            submission.setFinalScore(totalEarnedScore); // Score is locked in!
+            submission.setFinalScore(totalEarnedScore);
+
+            // Calculate Percentage safely
+            if (exam.getMaxScore().compareTo(BigDecimal.ZERO) > 0) {
+                percentage = totalEarnedScore.divide(exam.getMaxScore(), 4, RoundingMode.HALF_UP)
+                        .multiply(BigDecimal.valueOf(100));
+            }
+
+            // Determine Grade based on Examsy Logic
+            double pct = percentage.doubleValue();
+            if (pct < 40) finalGrade = "F";
+            else if (pct < 55) finalGrade = "S";
+            else if (pct < 65) finalGrade = "C";
+            else if (pct < 75) finalGrade = "B";
+            else finalGrade = "A";
         }
 
         submissionRepository.save(submission);
@@ -157,8 +209,10 @@ public class StudentExamServiceImpl implements StudentExamService {
         return ExamResultDTO.builder()
                 .score(totalEarnedScore)
                 .maxScore(exam.getMaxScore())
-                .status("MCQ".equalsIgnoreCase(exam.getExamType()) ? "GRADED" : "PENDING_TEACHER_REVIEW")
-                .message("Successfully submitted!")
+                .percentage(percentage.setScale(1, RoundingMode.HALF_UP))
+                .grade(finalGrade)
+                .status("PDF".equalsIgnoreCase(exam.getExamType()) ? "PENDING_TEACHER_REVIEW" : "GRADED")
+                .message("Successfully submitted and graded!")
                 .build();
     }
 

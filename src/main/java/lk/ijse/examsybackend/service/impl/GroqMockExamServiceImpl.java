@@ -10,7 +10,9 @@ import lk.ijse.examsybackend.repository.StudentRepo;
 import lk.ijse.examsybackend.service.GroqMockExamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -23,16 +25,15 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GroqMockExamServiceImpl implements GroqMockExamService {
 
+    private static final String GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
     private final MockExamRepo mockExamRepository;
     private final StudentRepo studentRepository;
-
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final RestTemplate restTemplate = new RestTemplate();
-
     @Value("${groq.api.key}")
     private String groqApiKey;
-
-    private static final String GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+    @Value("${groq.api.key1}")
+    private String groqApiKey1;
 
     @Transactional
     @Override
@@ -84,16 +85,13 @@ public class GroqMockExamServiceImpl implements GroqMockExamService {
         return mockExamRepository.save(exam);
     }
 
-    // =========================
-    // 🔥 GROQ CALL WITH BETTER PROMPT
-    // =========================
     private JsonNode callGroq(String subject, String topic, String difficulty, int count) {
 
         long seed = System.currentTimeMillis();
 
         String prompt = String.format("""
                 Generate a mock exam in STRICT JSON format.
-
+                
                 RULES:
                 - All answers MUST be 100%% correct.
                 - Double-check every calculation.
@@ -101,18 +99,18 @@ public class GroqMockExamServiceImpl implements GroqMockExamService {
                 - Ensure explanation matches the correct answer.
                 - If math is involved, recompute carefully.
                 - Do NOT produce invalid or inconsistent answers.
-
+                
                 Self-check before returning:
                 1. Verify correct option is truly correct
                 2. Verify explanation matches answer
                 3. Fix any errors before output
-
+                
                 Subject: %s
                 Topic: %s
                 Difficulty: %s
                 Number of Questions: %d
                 Seed: %d
-
+                
                 Output ONLY valid JSON:
                 {
                   "questions": [
@@ -152,9 +150,7 @@ public class GroqMockExamServiceImpl implements GroqMockExamService {
         }
     }
 
-    // =========================
-    // 🧠 VALIDATION LAYER
-    // =========================
+
     private boolean isValidExam(JsonNode data, int expectedCount) {
 
         if (!data.has("questions")) return false;
@@ -190,5 +186,68 @@ public class GroqMockExamServiceImpl implements GroqMockExamService {
         }
 
         return true;
+    }
+
+
+    public JsonNode gradeShortAnswer(String questionText, String modelAnswer, String studentAnswer, java.math.BigDecimal maxPoints) {
+        String prompt = String.format("""
+                You are a highly strict, fair, and accurate exam grader.
+                
+                TASK:
+                Evaluate the student's answer based ONLY on the teacher's model answer.
+                
+                INPUT:
+                Question: %s
+                Model Answer: %s
+                Student Answer: %s
+                Maximum Score: %s
+                
+                GRADING INSTRUCTIONS:
+                1. Identify key points in the model answer.
+                2. Compare the student answer against those key points.
+                3. Award marks proportionally based on correct coverage.
+                4. Do NOT give full marks unless all key points are covered correctly.
+                5. Ignore minor grammar mistakes unless they affect meaning.
+                6. Penalize missing, incorrect, or irrelevant information.
+                7. Do NOT guess — base grading strictly on provided answers.
+                
+                SCORING RULES:
+                - Score must be between 0 and %s
+                - Score must be logical and consistent with explanation
+                - Use decimal scoring if needed (e.g., 2.5)
+                
+                SELF-CHECK (VERY IMPORTANT):
+                Before giving final output:
+                - Ensure score matches the explanation
+                - Ensure no contradiction between feedback and score
+                - Ensure score is not higher than justified
+                
+                OUTPUT FORMAT (STRICT JSON ONLY):
+                {
+                  "awarded_score": number,
+                  "feedback": "Clear, concise explanation mentioning correct points and missing points"
+                }
+                """, questionText, modelAnswer, studentAnswer, maxPoints.toString(), maxPoints);
+        org.springframework.http.HttpHeaders headers = new org.springframework.http.HttpHeaders();
+        headers.setContentType(org.springframework.http.MediaType.APPLICATION_JSON);
+        headers.setBearerAuth(groqApiKey1);
+
+        Map<String, Object> body = Map.of(
+                "model", "llama-3.3-70b-versatile",
+                "messages", List.of(Map.of("role", "user", "content", prompt)),
+                "temperature", 0.1, // Very low temperature for strict, analytical grading
+                "response_format", Map.of("type", "json_object")
+        );
+
+        org.springframework.http.HttpEntity<Map<String, Object>> request = new org.springframework.http.HttpEntity<>(body, headers);
+
+        try {
+            String response = restTemplate.postForObject("https://api.groq.com/openai/v1/chat/completions", request, String.class);
+            JsonNode root = objectMapper.readTree(response);
+            String content = root.path("choices").get(0).path("message").path("content").asText();
+            return objectMapper.readTree(content);
+        } catch (Exception e) {
+            throw new RuntimeException("AI Grading failed: " + e.getMessage());
+        }
     }
 }

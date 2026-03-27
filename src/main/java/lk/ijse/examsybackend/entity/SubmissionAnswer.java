@@ -30,4 +30,7 @@ public class SubmissionAnswer {
 
     @Column(name = "score_awarded", precision = 5, scale = 2)
     private BigDecimal scoreAwarded;
+
+    @Column(name = "feedback", columnDefinition = "TEXT")
+    private String feedback;
 }

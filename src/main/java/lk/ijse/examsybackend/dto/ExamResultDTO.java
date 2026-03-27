@@ -16,4 +16,6 @@ public class ExamResultDTO {
     private BigDecimal maxScore;
     private String status;
     private String message;
+    private BigDecimal percentage;
+    private String grade;
 }
