@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "exam_submissions", uniqueConstraints = {
@@ -18,10 +19,14 @@ public class ExamSubmission {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "exam_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Exam exam;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Student student;
 
     @Column(name = "actual_start_time")
@@ -56,4 +61,14 @@ public class ExamSubmission {
 
     @Column(name = "pdf_submission_url")
     private String pdfSubmissionUrl;
+
+    @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<SubmissionAnswer> answers;
+
+    @OneToMany(mappedBy = "examSubmission", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<ProctoringLog> proctoringLogs;
 }

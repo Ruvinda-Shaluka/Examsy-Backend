@@ -15,16 +15,18 @@ public class Exam {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "class_id", nullable = false)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private Course course;
 
     @Column(nullable = false)
     private String title;
 
     @Column(name = "exam_mode", length = 20)
-    private String examMode; // REAL_TIME or DEADLINE
+    private String examMode;
 
     @Column(name = "exam_type", length = 20)
-    private String examType; // MCQ, SHORT, PDF
+    private String examType;
 
     @Column(name = "scheduled_start_time")
     private LocalDateTime scheduledStartTime;
@@ -44,7 +46,13 @@ public class Exam {
     @Column(length = 20)
     private String status = "PUBLISHED";
 
-    // Cascade allows you to save the exam and questions all at once!
     @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     private List<Question> questions;
+
+    @OneToMany(mappedBy = "exam", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private List<ExamSubmission> submissions;
 }
