@@ -29,4 +29,7 @@ public interface TeacherExamService {
 
     @Transactional
     void warnStudent(Integer examId, Integer studentId, String teacherUsername, String message);
+
+    @Transactional(readOnly = true)
+    List<PendingGradingDTO> getPendingPdfGradings(String teacherUsername);
 }

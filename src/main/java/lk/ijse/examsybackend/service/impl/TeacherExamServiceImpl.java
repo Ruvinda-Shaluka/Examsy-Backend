@@ -298,4 +298,35 @@ public class TeacherExamServiceImpl implements TeacherExamService {
 
         notificationService.dispatchStudentWarning(studentId, exam.getCourse().getTeacher().getFullName(), exam.getCourse().getName(), message);
     }
+
+    @Transactional(readOnly = true)
+    @Override
+    public List<PendingGradingDTO> getPendingPdfGradings(String teacherUsername) {
+        // 1. Fetch all exams belonging to this teacher
+        List<Exam> exams = examRepository.findByCourseTeacherUserAccountUsernameAndStatus(teacherUsername, "PUBLISHED");
+        List<PendingGradingDTO> pendingList = new ArrayList<>();
+
+        for (Exam exam : exams) {
+            // 2. We only care about PDF exams
+            if ("PDF".equalsIgnoreCase(exam.getExamType())) {
+                List<ExamSubmission> submissions = examSubmissionRepo.findByExamId(exam.getId());
+
+                for (ExamSubmission sub : submissions) {
+                    // 3. Filter for submissions that are turned in but not yet fully graded
+                    if ("SUBMITTED".equalsIgnoreCase(sub.getStatus()) && sub.getPdfSubmissionUrl() != null) {
+                        pendingList.add(PendingGradingDTO.builder()
+                                .id(sub.getId())
+                                .examId(exam.getId())
+                                .studentName(sub.getStudent().getFullName())
+                                .examTitle(exam.getTitle())
+                                .status("PENDING")
+                                .pdfUrl(sub.getPdfSubmissionUrl())
+                                .build());
+                    }
+                }
+            }
+        }
+        return pendingList;
+    }
+
 }

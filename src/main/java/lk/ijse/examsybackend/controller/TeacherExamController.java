@@ -7,6 +7,7 @@ import lk.ijse.examsybackend.service.TeacherExamService;
 import lk.ijse.examsybackend.util.APIResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -114,5 +115,12 @@ public class TeacherExamController {
             e.printStackTrace();
             return ResponseEntity.internalServerError().body(new APIResponse<>(500, "An error occurred during smart grading.", null));
         }
+    }
+
+    @GetMapping("/pending-gradings")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<APIResponse<List<PendingGradingDTO>>> getPendingGradings(@AuthenticationPrincipal UserDetails user) {
+        List<PendingGradingDTO> data = teacherExamService.getPendingPdfGradings(user.getUsername());
+        return ResponseEntity.ok(new APIResponse<>(200, "Pending gradings fetched", data));
     }
 }
