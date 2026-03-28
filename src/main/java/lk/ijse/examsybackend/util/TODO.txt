@@ -24,4 +24,6 @@ Teacher Classroom -> Grades at last
 
 Student Classroom -> Grades at last
 
+Send exam reminders to students
+
 Search Functionality

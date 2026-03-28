@@ -25,11 +25,12 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class GroqMockExamServiceImpl implements GroqMockExamService {
 
-    private static final String GROQ_URL = "https://api.groq.com/openai/v1/chat/completions";
+    @Value("${groq.api.url}")
+    private static String GROQ_URL;
     private final MockExamRepo mockExamRepository;
     private final StudentRepo studentRepository;
-    private final ObjectMapper objectMapper = new ObjectMapper();
-    private final RestTemplate restTemplate = new RestTemplate();
+    private final ObjectMapper objectMapper;
+    private final RestTemplate restTemplate;
     @Value("${groq.api.key}")
     private String groqApiKey;
     @Value("${groq.api.key1}")
