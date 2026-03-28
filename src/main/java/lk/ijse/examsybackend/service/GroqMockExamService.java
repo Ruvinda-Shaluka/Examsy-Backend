@@ -12,5 +12,4 @@ public interface GroqMockExamService {
 
     JsonNode gradeShortAnswer(String questionText, String modelAnswer, String studentAnswer, java.math.BigDecimal maxPoints);
 
-    Map<String, Object> evaluateAnswer(String questionText, String modelAnswer, String studentOcrText);
 }

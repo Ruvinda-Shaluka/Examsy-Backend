@@ -3,6 +3,7 @@ package lk.ijse.examsybackend.service.impl;
 import lk.ijse.examsybackend.entity.ExamSubmission;
 import lk.ijse.examsybackend.entity.Question;
 import lk.ijse.examsybackend.repository.ExamSubmissionRepo;
+import lk.ijse.examsybackend.service.GroqGradingService;
 import lk.ijse.examsybackend.service.GroqMockExamService;
 import lk.ijse.examsybackend.service.OCRService;
 import lk.ijse.examsybackend.service.SmartGradingService;
@@ -18,7 +19,7 @@ public class SmartGradingServiceImpl implements SmartGradingService {
 
     private final ExamSubmissionRepo submissionRepository;
     private final OCRService ocrService;
-    private final GroqMockExamService groqGradingService;
+    private final GroqGradingService groqGradingService;
 
     @Transactional(readOnly = true)
     @Override
@@ -44,6 +45,10 @@ public class SmartGradingServiceImpl implements SmartGradingService {
 
         // 3. Extract handwriting from the PDF
         String studentOcrText = ocrService.extractTextFromPdfUrl(submission.getPdfSubmissionUrl());
+
+        System.out.println("\n========== OCR EXTRACTED TEXT ==========");
+        System.out.println(studentOcrText);
+        System.out.println("========================================\n");
 
         // 4. Send to Groq Llama 3 for evaluation
         Map<String, Object> aiResult = groqGradingService.evaluateAnswer(

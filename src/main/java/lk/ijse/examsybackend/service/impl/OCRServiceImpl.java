@@ -38,8 +38,16 @@ public class OCRServiceImpl implements OCRService {
             document.close();
             in.close();
 
-            // 🟢 NEW: Pre-process and clean the text before returning it to the LLM
-            return cleanOcrText(extractedText.toString());
+            // 1. Clean the text and save it to a variable
+            String finalCleanedText = cleanOcrText(extractedText.toString());
+
+            // 👇 2. PRINT TO CONSOLE 👇
+            System.out.println("\n--- RAW OCR OUTPUT ---");
+            System.out.println(finalCleanedText);
+            System.out.println("----------------------\n");
+
+            // 3. Return the text to the grading orchestrator
+            return finalCleanedText;
 
         } catch (TesseractException e) {
             System.err.println("OCR Engine Failed to read the image: " + e.getMessage());
