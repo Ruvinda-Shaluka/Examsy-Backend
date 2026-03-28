@@ -2,6 +2,7 @@ package lk.ijse.examsybackend.controller;
 
 import jakarta.validation.Valid;
 import lk.ijse.examsybackend.dto.*;
+import lk.ijse.examsybackend.service.SmartGradingService;
 import lk.ijse.examsybackend.service.TeacherExamService;
 import lk.ijse.examsybackend.util.APIResponse;
 import lombok.RequiredArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/teacher/exams")
@@ -18,6 +20,7 @@ import java.util.List;
 public class TeacherExamController {
 
     private final TeacherExamService teacherExamService;
+    private final SmartGradingService smartGradingService;
 
     /**
      * Publishes a new exam (MCQ, Short Answer, or PDF) to one or multiple classes.
@@ -94,5 +97,22 @@ public class TeacherExamController {
             @AuthenticationPrincipal UserDetails user) {
         teacherExamService.warnStudent(examId, studentId, user.getUsername(), dto.getMessage());
         return ResponseEntity.ok(new APIResponse<>(200, "Warning sent successfully", null));
+    }
+
+    @PostMapping("/{examId}/grade/{submissionId}/auto")
+    public ResponseEntity<APIResponse<Map<String, Object>>> autoGradePdfSubmission(
+            @PathVariable Integer examId, // Kept for URL consistency, even if service uses submissionId
+            @PathVariable Integer submissionId,
+            @AuthenticationPrincipal UserDetails user) {
+
+        try {
+            Map<String, Object> gradingResult = smartGradingService.autoGradeSubmission(submissionId);
+            return ResponseEntity.ok(new APIResponse<>(200, "AI Grading successful", gradingResult));
+        } catch (IllegalStateException e) {
+            return ResponseEntity.badRequest().body(new APIResponse<>(400, e.getMessage(), null));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.internalServerError().body(new APIResponse<>(500, "An error occurred during smart grading.", null));
+        }
     }
 }

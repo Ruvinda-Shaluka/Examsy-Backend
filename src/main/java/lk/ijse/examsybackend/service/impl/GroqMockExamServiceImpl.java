@@ -17,7 +17,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -35,6 +40,9 @@ public class GroqMockExamServiceImpl implements GroqMockExamService {
     private String groqApiKey;
     @Value("${groq.api.key1}")
     private String groqApiKey1;
+    @Value("${groq.api.key2}")
+    private String groqApiKey2;
+
 
     @Transactional
     @Override
@@ -151,7 +159,6 @@ public class GroqMockExamServiceImpl implements GroqMockExamService {
         }
     }
 
-
     private boolean isValidExam(JsonNode data, int expectedCount) {
 
         if (!data.has("questions")) return false;
@@ -189,7 +196,7 @@ public class GroqMockExamServiceImpl implements GroqMockExamService {
         return true;
     }
 
-
+    @Override
     public JsonNode gradeShortAnswer(String questionText, String modelAnswer, String studentAnswer, java.math.BigDecimal maxPoints) {
         String prompt = String.format("""
                 You are a highly strict, fair, and accurate exam grader.
@@ -250,5 +257,120 @@ public class GroqMockExamServiceImpl implements GroqMockExamService {
         } catch (Exception e) {
             throw new RuntimeException("AI Grading failed: " + e.getMessage());
         }
+    }
+
+    @Override
+    public Map<String, Object> evaluateAnswer(String questionText, String modelAnswer, String studentOcrText) {
+
+        String systemPrompt = """
+                You are an expert, strict but fair exam grader.
+                
+                You are grading answers extracted from handwritten exam papers using OCR.
+                The OCR text may contain:
+                - Spelling mistakes (e.g., "rnass" instead of "mass")
+                - Missing punctuation
+                - Broken or merged words
+                - Random noise characters
+                
+                You MUST intelligently interpret the student's intent.
+                
+                GRADING RULES:
+                1. Compare the student's answer with the model answer concept-by-concept.
+                2. Identify key points from the model answer.
+                3. Check which points are:
+                   - Fully correct
+                   - Partially correct
+                   - Missing
+                   - Incorrect
+                4. Be strict but fair:
+                   - Award partial marks where appropriate
+                   - Do NOT give full marks unless the answer is conceptually complete
+                5. Ignore minor OCR-related spelling mistakes if meaning is clear.
+                
+                OUTPUT REQUIREMENTS:
+                - Return ONLY valid JSON (no markdown, no explanation outside JSON)
+                - Follow this EXACT structure:
+                {
+                  "suggestedScore": <integer 0 to 100>,
+                  "matchedConcepts": ["..."],
+                  "missingConcepts": ["..."],
+                  "incorrectParts": ["..."],
+                  "comments": "<clear, short feedback>",
+                  "confidence": "<High | Medium | Low>"
+                }
+                
+                SCORING:
+                - Base score on percentage of correct concepts covered
+                - Penalize missing key points heavily
+                - Penalize incorrect explanations moderately
+                - Reward clarity and completeness
+                
+                IMPORTANT:
+                Do NOT hallucinate content.
+                Do NOT include anything outside the JSON.
+                """;
+
+        String userPrompt = String.format("""
+                Question:
+                %s
+                
+                Model Answer:
+                %s
+                
+                Student Answer (OCR Extracted):
+                %s
+                """, questionText, modelAnswer, studentOcrText);
+
+        try {
+            String requestBody = """
+                    {
+                      "model": "llama3-70b-8192",
+                      "messages": [
+                        { "role": "system", "content": %s },
+                        { "role": "user", "content": %s }
+                      ],
+                      "temperature": 0.1, 
+                      "response_format": { "type": "json_object" }
+                    }
+                    """.formatted(
+                    objectMapper.writeValueAsString(systemPrompt),
+                    objectMapper.writeValueAsString(userPrompt)
+            );
+
+            HttpClient client = HttpClient.newHttpClient();
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(GROQ_URL))
+                    .header("Authorization", "Bearer " + groqApiKey2)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBody))
+                    .build();
+
+            HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() == 200) {
+                JsonNode rootNode = objectMapper.readTree(response.body());
+                String aiResponseText = rootNode.path("choices").get(0).path("message").path("content").asText();
+                return objectMapper.readValue(aiResponseText, Map.class);
+            } else {
+                System.err.println("Groq API Error: " + response.body());
+                return fallbackResponse("API Error: " + response.statusCode());
+            }
+
+        } catch (Exception e) {
+            System.err.println("Failed to communicate with Groq: " + e.getMessage());
+            return fallbackResponse("Exception occurred during AI grading.");
+        }
+    }
+
+    // fallback to match your new JSON schema arrays perfectly
+    private Map<String, Object> fallbackResponse(String errorDetails) {
+        Map<String, Object> fallback = new HashMap<>();
+        fallback.put("suggestedScore", 0);
+        fallback.put("matchedConcepts", List.of());
+        fallback.put("missingConcepts", List.of());
+        fallback.put("incorrectParts", List.of("System Error: Could not connect to AI."));
+        fallback.put("comments", "Manual review required. Details: " + errorDetails);
+        fallback.put("confidence", "Low");
+        return fallback;
     }
 }

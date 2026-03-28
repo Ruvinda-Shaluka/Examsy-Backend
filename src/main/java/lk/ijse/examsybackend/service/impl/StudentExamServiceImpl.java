@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.entity.*;
 import lk.ijse.examsybackend.repository.*;
+import lk.ijse.examsybackend.service.GroqMockExamService;
 import lk.ijse.examsybackend.service.StudentExamService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,7 @@ public class StudentExamServiceImpl implements StudentExamService {
     private final QuestionOptionRepo optionRepository;
     private final StudentRepo studentRepository;
     private final ProctoringLogRepo proctoringLogRepository;
-    private final GroqMockExamServiceImpl groqMockExamService;
+    private final GroqMockExamService groqMockExamService;
 
     // --- 1. PROCTORING: Track Cheating / Tab Switches ---
     @Transactional
