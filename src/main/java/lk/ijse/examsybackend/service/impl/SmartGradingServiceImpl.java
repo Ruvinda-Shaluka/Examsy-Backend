@@ -46,9 +46,9 @@ public class SmartGradingServiceImpl implements SmartGradingService {
         // 3. Extract handwriting from the PDF
         String studentOcrText = ocrService.extractTextFromPdfUrl(submission.getPdfSubmissionUrl());
 
-        System.out.println("\n========== OCR EXTRACTED TEXT ==========");
+/*        System.out.println("\n========== OCR EXTRACTED TEXT ==========");
         System.out.println(studentOcrText);
-        System.out.println("========================================\n");
+        System.out.println("========================================\n");*/
 
         // 4. Send to Groq Llama 3 for evaluation
         Map<String, Object> aiResult = groqGradingService.evaluateAnswer(
