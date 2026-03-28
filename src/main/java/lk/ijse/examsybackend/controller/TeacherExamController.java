@@ -123,4 +123,20 @@ public class TeacherExamController {
         List<PendingGradingDTO> data = teacherExamService.getPendingPdfGradings(user.getUsername());
         return ResponseEntity.ok(new APIResponse<>(200, "Pending gradings fetched", data));
     }
+
+
+    @PostMapping("/{examId}/grade/{submissionId}/approve")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<APIResponse<Void>> approveGrade(
+            @PathVariable Integer examId,
+            @PathVariable Integer submissionId,
+            @RequestParam java.math.BigDecimal score,
+            @RequestBody(required = false) Map<String, String> payload, // For passing the AI comments
+            @AuthenticationPrincipal UserDetails user) {
+
+        String feedback = payload != null ? payload.get("comments") : "";
+        teacherExamService.approveAndReleaseGrade(user.getUsername(), submissionId, score, feedback);
+
+        return ResponseEntity.ok(new APIResponse<>(200, "Grade released successfully", null));
+    }
 }
