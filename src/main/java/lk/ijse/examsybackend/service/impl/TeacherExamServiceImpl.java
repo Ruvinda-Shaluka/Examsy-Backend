@@ -33,8 +33,9 @@ public class TeacherExamServiceImpl implements TeacherExamService {
     public void publishExam(String username, ExamPublishDTO dto) {
 
         // 1. Calculate Total Max Score
-        BigDecimal maxScore = BigDecimal.ZERO;
-        if (dto.getQuestions() != null) {
+        BigDecimal maxScore = dto.getMaxScore() != null ? dto.getMaxScore() : BigDecimal.ZERO;
+
+        if (maxScore.compareTo(BigDecimal.ZERO) == 0 && dto.getQuestions() != null) {
             for (QuestionDTO q : dto.getQuestions()) {
                 maxScore = maxScore.add(q.getPoints() != null ? q.getPoints() : BigDecimal.ZERO);
             }

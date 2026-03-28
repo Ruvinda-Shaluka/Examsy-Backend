@@ -4,6 +4,8 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
+
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,4 +31,7 @@ public class ExamPublishDTO {
 
     @Valid
     private List<QuestionDTO> questions; // For MCQ and Short Answer
+
+    @NotNull(message = "Max score is required")
+    private BigDecimal maxScore;
 }
