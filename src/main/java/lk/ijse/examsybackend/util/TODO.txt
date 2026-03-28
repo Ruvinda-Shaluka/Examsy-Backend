@@ -1,14 +1,3 @@
- PDF Exams -> Grading
- 👉 Use Semi-Automatic Grading
- AI suggests marks ✅
- Teacher reviews before finalizing ✅
- OCR: Tesseract
- AI: Groq
-
- Set max value for pdf exam
-
- Inform students about grading after done
-
 MCQ Exams -> Grading logic
 - Grading logic for other Exams
 - Calculate cumulative gpa for students
