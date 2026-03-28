@@ -329,4 +329,29 @@ public class TeacherExamServiceImpl implements TeacherExamService {
         return pendingList;
     }
 
+    @Transactional
+    @Override
+    public void approveAndReleaseGrade(String teacherUsername, Integer submissionId, BigDecimal finalScore, String feedback) {
+        // 1. Fetch the submission
+        ExamSubmission submission = examSubmissionRepo.findById(submissionId)
+                .orElseThrow(() -> new RuntimeException("Submission not found."));
+
+        // 2. Security Check: Ensure the teacher owns this class
+        Course course = submission.getExam().getCourse();
+        if (!course.getTeacher().getUserAccount().getUsername().equals(teacherUsername)) {
+            throw new RuntimeException("Unauthorized to grade this exam.");
+        }
+
+        // 3. Update the Submission record
+        submission.setFinalScore(finalScore);
+        submission.setStatus("GRADED"); // Mark it so it leaves the "Pending" queue!
+
+        submission.setPdfFeedback(feedback);
+
+        examSubmissionRepo.save(submission);
+
+        // 4. Trigger the Notification!
+        notificationService.notifyStudentOfGradedExam(submission, course, course.getTeacher().getFullName(), finalScore);
+    }
+
 }

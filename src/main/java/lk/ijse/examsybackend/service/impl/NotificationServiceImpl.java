@@ -405,4 +405,49 @@ public class NotificationServiceImpl implements NotificationService {
             notificationRepository.saveAll(notificationsToSave);
         }
     }
+
+    @Transactional
+    @Override
+    public void notifyStudentOfGradedExam(ExamSubmission submission, Course course, String teacherName, java.math.BigDecimal finalScore) {
+        Student student = submission.getStudent();
+        UserAccount studentAccount = student.getUserAccount();
+        UserPrefs prefs = getUserPreferences(studentAccount.getUsername());
+
+        String examTitle = submission.getExam().getTitle();
+        String notificationTitle = "Grade Released: " + examTitle;
+        String messageContent = teacherName + " has graded your submission for '" + examTitle + "'. Your final score is: " + finalScore + " / " + submission.getExam().getMaxScore() + ".";
+
+        // 1. In-App Push Notification
+        if (prefs.isPushEnabled()) {
+            Notification notif = Notification.builder()
+                    .userAccount(studentAccount)
+                    .title(notificationTitle)
+                    .message(messageContent)
+                    .isRead(false)
+                    .courseId(course.getId())
+                    .build();
+            notificationRepository.save(notif);
+        }
+
+        // 2. Email Notification
+        if (prefs.isEmailEnabled() && studentAccount.getEmail() != null) {
+            try {
+                MimeMessage message = mailSender.createMimeMessage();
+                MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+                helper.setFrom(new InternetAddress("noreply@examsy.com", teacherName + " (Examsy)"));
+                helper.setTo(studentAccount.getEmail());
+                helper.setSubject(notificationTitle);
+
+                String body = "Hello " + student.getFullName() + ",\n\n" +
+                        messageContent + "\n\n" +
+                        "Log in to your Examsy Student Dashboard to view the full feedback and analytics for this exam.";
+
+                helper.setText(body);
+                mailSender.send(message);
+            } catch (Exception e) {
+                System.err.println("Failed to send grade release email to " + studentAccount.getEmail() + ": " + e.getMessage());
+            }
+        }
+    }
 }

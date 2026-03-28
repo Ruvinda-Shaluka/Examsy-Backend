@@ -62,6 +62,11 @@ public class ExamSubmission {
     @Column(name = "pdf_submission_url")
     private String pdfSubmissionUrl;
 
+    @Column(name = "pdf_feedback")
+    private String pdfFeedback;
+
+
+
     @OneToMany(mappedBy = "submission", cascade = CascadeType.ALL, orphanRemoval = true)
     @ToString.Exclude
     @EqualsAndHashCode.Exclude

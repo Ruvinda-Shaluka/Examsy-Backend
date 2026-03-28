@@ -3,6 +3,7 @@ package lk.ijse.examsybackend.service;
 import lk.ijse.examsybackend.dto.*;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface TeacherExamService {
@@ -32,4 +33,7 @@ public interface TeacherExamService {
 
     @Transactional(readOnly = true)
     List<PendingGradingDTO> getPendingPdfGradings(String teacherUsername);
+
+    @Transactional
+    void approveAndReleaseGrade(String teacherUsername, Integer submissionId, BigDecimal finalScore, String feedback);
 }

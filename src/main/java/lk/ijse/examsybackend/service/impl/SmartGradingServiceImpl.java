@@ -4,7 +4,6 @@ import lk.ijse.examsybackend.entity.ExamSubmission;
 import lk.ijse.examsybackend.entity.Question;
 import lk.ijse.examsybackend.repository.ExamSubmissionRepo;
 import lk.ijse.examsybackend.service.GroqGradingService;
-import lk.ijse.examsybackend.service.GroqMockExamService;
 import lk.ijse.examsybackend.service.OCRService;
 import lk.ijse.examsybackend.service.SmartGradingService;
 import lombok.RequiredArgsConstructor;
