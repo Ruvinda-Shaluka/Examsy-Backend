@@ -2,10 +2,10 @@ MCQ Exams -> Grading logic
 - Grading logic for other Exams
 - Calculate cumulative gpa for students
 
+Send exam reminders to students
+
 Teacher Classroom -> Grades at last
 
 Student Classroom -> Grades at last
-
-Send exam reminders to students
 
 Search Functionality
