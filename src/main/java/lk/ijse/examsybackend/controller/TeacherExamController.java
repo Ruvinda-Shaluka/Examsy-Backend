@@ -148,4 +148,11 @@ public class TeacherExamController {
 
         return ResponseEntity.ok(new APIResponse<>(200, "Grade released successfully", null));
     }
+
+    @PostMapping("/trigger-reminders")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<APIResponse<Void>> triggerReminders(@AuthenticationPrincipal UserDetails user) {
+        teacherExamService.triggerUpcomingExamReminders(user.getUsername());
+        return ResponseEntity.ok(new APIResponse<>(200, "Reminders dispatched successfully", null));
+    }
 }

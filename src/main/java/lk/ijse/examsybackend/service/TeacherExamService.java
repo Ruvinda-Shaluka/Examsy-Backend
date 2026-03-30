@@ -36,4 +36,7 @@ public interface TeacherExamService {
 
     @Transactional
     void approveAndReleaseGrade(String teacherUsername, Integer submissionId, BigDecimal finalScore, BigDecimal calculatedScore, String feedback);
+
+    @Transactional
+    void triggerUpcomingExamReminders(String teacherUsername);
 }

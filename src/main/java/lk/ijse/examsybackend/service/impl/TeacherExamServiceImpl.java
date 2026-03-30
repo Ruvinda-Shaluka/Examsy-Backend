@@ -393,4 +393,61 @@ public class TeacherExamServiceImpl implements TeacherExamService {
         // 5. Trigger the Notification!
         notificationService.notifyStudentOfGradedExam(submission, course, course.getTeacher().getFullName(), finalScore);
     }
+
+    @Transactional
+    @Override
+    public void triggerUpcomingExamReminders(String teacherUsername) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime within48Hours = now.plusHours(48);
+
+        // 1. Get all published exams happening within the next 48 hours for this teacher
+        List<Exam> upcomingExams = examRepository.findUpcomingExamsForReminders(teacherUsername, now, within48Hours);
+
+        if (upcomingExams.isEmpty()) return; // Nothing to remind!
+
+        for (Exam exam : upcomingExams) {
+            // 2. Get all enrolled students for the class
+            List<ClassEnrollment> enrollments = classEnrollmentRepo.findByCourseId(exam.getCourse().getId());
+
+            // Fetch all submissions for this exam to easily check who finished
+            List<ExamSubmission> submissions = examSubmissionRepo.findByExamId(exam.getId());
+
+            for (ClassEnrollment enrollment : enrollments) {
+                Student student = enrollment.getStudent();
+                boolean hasFinished = false;
+
+                // 3. Find if this specific student has a submission record
+                java.util.Optional<ExamSubmission> studentSub = submissions.stream()
+                        .filter(sub -> sub.getStudent().getId().equals(student.getId()))
+                        .findFirst();
+
+                if (studentSub.isPresent()) {
+                    ExamSubmission submission = studentSub.get();
+                    // 4. APPLY THE STRICT LOGIC: Do they have a final score, a grade letter, or are waiting for grading?
+                    if (submission.getFinalScore() != null || submission.getAwardedGradeLetter() != null || "SUBMITTED".equalsIgnoreCase(submission.getStatus())) {
+                        hasFinished = true;
+                    }
+                }
+
+                // 5. If they haven't finished, send the reminder email!
+                if (!hasFinished) {
+                    String timeLabel = exam.getExamMode().contains("REAL") ? "Scheduled Start" : "Deadline";
+                    String timeValue = exam.getExamMode().contains("REAL") ? exam.getScheduledStartTime().toString() : exam.getDeadlineTime().toString();
+
+                    String message = "This is an automated reminder that you have an upcoming exam: '" + exam.getTitle() + "'.\n\n" +
+                            "Course: " + exam.getCourse().getName() + "\n" +
+                            timeLabel + ": " + timeValue + "\n\n" +
+                            "Please ensure you are prepared and log in on time.";
+
+                    // We reuse your existing notification logic here to handle user preferences and email formatting
+                    notificationService.dispatchStudentWarning(
+                            student.getId(),
+                            exam.getCourse().getTeacher().getFullName(),
+                            exam.getCourse().getName(),
+                            message
+                    );
+                }
+            }
+        }
+    }
 }
