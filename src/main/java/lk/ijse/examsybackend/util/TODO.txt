@@ -1,7 +1,3 @@
-MCQ Exams -> Grading logic
-- Grading logic for other Exams
-- Calculate cumulative gpa for students
-
 Send exam reminders to students
 
 Teacher Classroom -> Grades at last
