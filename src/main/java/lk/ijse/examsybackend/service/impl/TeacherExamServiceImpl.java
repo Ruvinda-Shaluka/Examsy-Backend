@@ -32,12 +32,22 @@ public class TeacherExamServiceImpl implements TeacherExamService {
     @Override
     public void publishExam(String username, ExamPublishDTO dto) {
 
-        // 1. Calculate Total Max Score
-        BigDecimal maxScore = dto.getMaxScore() != null ? dto.getMaxScore() : BigDecimal.ZERO;
+        // 1. Calculate Total Max Score Dynamically
+        BigDecimal maxScore = BigDecimal.ZERO;
 
-        if (maxScore.compareTo(BigDecimal.ZERO) == 0 && dto.getQuestions() != null) {
-            for (QuestionDTO q : dto.getQuestions()) {
-                maxScore = maxScore.add(q.getPoints() != null ? q.getPoints() : BigDecimal.ZERO);
+        if ("PDF".equalsIgnoreCase(dto.getExamType())) {
+            // PDF: Uses manual user input from the frontend
+            maxScore = dto.getMaxScore() != null ? dto.getMaxScore() : BigDecimal.ZERO;
+        } else if (dto.getQuestions() != null && !dto.getQuestions().isEmpty()) {
+            // MCQ: Automatically 1 point per question
+            if ("MCQ".equalsIgnoreCase(dto.getExamType())) {
+                maxScore = BigDecimal.valueOf(dto.getQuestions().size());
+            }
+            // SHORT: Sum of individual question points (defaults to 1 point each if missing)
+            else if ("SHORT".equalsIgnoreCase(dto.getExamType())) {
+                for (QuestionDTO q : dto.getQuestions()) {
+                    maxScore = maxScore.add(q.getPoints() != null ? q.getPoints() : BigDecimal.ONE);
+                }
             }
         }
 
@@ -65,11 +75,20 @@ public class TeacherExamServiceImpl implements TeacherExamService {
                 int orderIdx = 1;
 
                 for (QuestionDTO qDto : dto.getQuestions()) {
+
+                    // Ensure the individual question points match the logic we used for the maxScore
+                    BigDecimal qPoints = qDto.getPoints();
+                    if ("MCQ".equalsIgnoreCase(dto.getExamType())) {
+                        qPoints = BigDecimal.ONE;
+                    } else if (qPoints == null) {
+                        qPoints = BigDecimal.ONE;
+                    }
+
                     Question question = Question.builder()
                             .exam(exam)
                             .questionText(qDto.getQuestionText())
                             .questionType(dto.getExamType())
-                            .points(qDto.getPoints())
+                            .points(qPoints)
                             .modelAnswer(qDto.getModelAnswer())
                             .orderIndex(orderIdx++)
                             .build();
