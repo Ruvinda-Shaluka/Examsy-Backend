@@ -238,9 +238,27 @@ public class StudentExamServiceImpl implements StudentExamService {
         for (Exam exam : classExams) {
 
             String currentStatus = "NOT_STARTED";
+            boolean hasFinished = false;
+
             java.util.Optional<ExamSubmission> subOpt = submissionRepository.findByExamIdAndStudentId(exam.getId(), student.getId());
+
             if (subOpt.isPresent()) {
-                currentStatus = subOpt.get().getStatus(); // Gets "SUBMITTED" or "IN_PROGRESS"
+                ExamSubmission submission = subOpt.get();
+                currentStatus = submission.getStatus();
+
+                // Check if the record actually has a final score or graded letter
+                if (submission.getFinalScore() != null || submission.getAwardedGradeLetter() != null) {
+                    hasFinished = true;
+                }
+                // Fallback for PDF exams that are submitted but waiting for the teacher to grade them
+                else if ("SUBMITTED".equalsIgnoreCase(currentStatus)) {
+                    hasFinished = true;
+                }
+            }
+
+            // If they have a grade, skip sending this exam to the frontend vault
+            if (hasFinished) {
+                continue;
             }
 
             VaultExamItemDTO dto = VaultExamItemDTO.builder()
