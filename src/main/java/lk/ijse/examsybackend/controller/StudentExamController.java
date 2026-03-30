@@ -6,6 +6,7 @@ import lk.ijse.examsybackend.service.StudentExamService;
 import lk.ijse.examsybackend.util.APIResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.validation.annotation.Validated;
@@ -62,5 +63,12 @@ public class StudentExamController {
 
         ProctoringStatsDTO updatedStats = studentExamService.logProctoringEvent(examId, user.getUsername(), logDTO);
         return ResponseEntity.ok(new APIResponse<>(200, "Proctoring event logged", updatedStats));
+    }
+
+    @GetMapping("/analytics")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<APIResponse<StudentAnalyticsDTO>> getStudentAnalytics(@AuthenticationPrincipal UserDetails user) {
+        StudentAnalyticsDTO analytics = studentExamService.getStudentAnalytics(user.getUsername());
+        return ResponseEntity.ok(new APIResponse<>(200, "Analytics fetched successfully", analytics));
     }
 }

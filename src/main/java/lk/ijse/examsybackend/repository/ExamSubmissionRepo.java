@@ -18,4 +18,6 @@ public interface ExamSubmissionRepo extends JpaRepository<ExamSubmission,Integer
     // Fetch all student submissions for a specific exam
     List<ExamSubmission> findByExamId(Integer examId);
 
+    List<ExamSubmission> findByStudentIdAndStatusOrderBySubmittedAtAsc(Integer studentId, String status);
+
 }

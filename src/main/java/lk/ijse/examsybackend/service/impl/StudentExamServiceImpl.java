@@ -316,4 +316,85 @@ public class StudentExamServiceImpl implements StudentExamService {
                 .totalAwaySeconds(newTotalTime)
                 .build();
     }
+
+    @Transactional(readOnly = true)
+    @Override
+    public StudentAnalyticsDTO getStudentAnalytics(String username) {
+        Student student = studentRepository.findByUserAccountUsername(username)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        // Fetch all completed & graded exams, sorted chronologically
+        List<ExamSubmission> submissions = submissionRepository.findByStudentIdAndStatusOrderBySubmittedAtAsc(student.getId(), "GRADED");
+
+        if (submissions.isEmpty()) {
+            return StudentAnalyticsDTO.builder()
+                    .gpa("0.0")
+                    .bestScore("N/A")
+                    .bestExam("No data")
+                    .lowestScore("N/A")
+                    .lowestExam("No data")
+                    .rankText("N/A")
+                    .rankSubText("Take an exam first")
+                    .chartData(new java.util.ArrayList<>())
+                    .build();
+        }
+
+        double highestPct = -1.0;
+        double lowestPct = 101.0;
+        String bestExamTitle = "";
+        String lowestExamTitle = "";
+        double totalGpaPoints = 0.0;
+
+        List<ExamChartDataDTO> chartData = new java.util.ArrayList<>();
+
+        for (ExamSubmission sub : submissions) {
+            java.math.BigDecimal finalScore = sub.getFinalScore() != null ? sub.getFinalScore() : java.math.BigDecimal.ZERO;
+            java.math.BigDecimal maxScore = sub.getExam().getMaxScore();
+
+            double pct = 0.0;
+            if (maxScore != null && maxScore.compareTo(java.math.BigDecimal.ZERO) > 0) {
+                pct = finalScore.divide(maxScore, 4, java.math.RoundingMode.HALF_UP).doubleValue() * 100;
+            }
+
+            // Track Best Score
+            if (pct > highestPct) {
+                highestPct = pct;
+                bestExamTitle = sub.getExam().getTitle();
+            }
+
+            // Track Lowest Score
+            if (pct < lowestPct) {
+                lowestPct = pct;
+                lowestExamTitle = sub.getExam().getTitle();
+            }
+
+            // Map Examsy Letter Grade to Standard 4.0 GPA Scale
+            String grade = sub.getAwardedGradeLetter();
+            if ("A".equals(grade)) totalGpaPoints += 4.0;
+            else if ("B".equals(grade)) totalGpaPoints += 3.0;
+            else if ("C".equals(grade)) totalGpaPoints += 2.0;
+            else if ("S".equals(grade)) totalGpaPoints += 1.0;
+            // 'F' gets 0.0
+
+            // Add to Chart Data
+            chartData.add(ExamChartDataDTO.builder()
+                    .exam(sub.getExam().getTitle())
+                    .score(Math.round(pct * 10.0) / 10.0) // Round to 1 decimal place
+                    .build());
+        }
+
+        double calculatedGpa = totalGpaPoints / submissions.size();
+
+        return StudentAnalyticsDTO.builder()
+                .gpa(String.format("%.2f", calculatedGpa))
+                .bestScore(String.format("%.0f%%", highestPct))
+                .bestExam(bestExamTitle)
+                .lowestScore(String.format("%.0f%%", lowestPct))
+                .lowestExam(lowestExamTitle)
+                .rankText(submissions.size() + "")
+                .rankSubText("Exams Completed")
+                .chartData(chartData)
+                .build();
+    }
+
 }

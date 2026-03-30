@@ -22,4 +22,7 @@ public interface StudentExamService {
 
     @Transactional
     ProctoringStatsDTO logProctoringEvent(Integer examId, String studentUsername, ProctoringLogDTO dto);
+
+    @Transactional(readOnly = true)
+    StudentAnalyticsDTO getStudentAnalytics(String username);
 }
