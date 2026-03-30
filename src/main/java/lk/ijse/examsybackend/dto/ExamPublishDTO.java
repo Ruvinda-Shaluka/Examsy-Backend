@@ -32,6 +32,5 @@ public class ExamPublishDTO {
     @Valid
     private List<QuestionDTO> questions; // For MCQ and Short Answer
 
-    @NotNull(message = "Max score is required")
     private BigDecimal maxScore;
 }
