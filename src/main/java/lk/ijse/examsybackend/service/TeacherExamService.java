@@ -39,4 +39,7 @@ public interface TeacherExamService {
 
     @Transactional
     void triggerUpcomingExamReminders(String teacherUsername);
+
+    @Transactional(readOnly = true)
+    ExamAnalyticsDTO getExamAnalytics(Integer examId, String teacherUsername);
 }

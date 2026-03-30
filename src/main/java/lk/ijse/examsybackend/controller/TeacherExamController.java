@@ -155,4 +155,14 @@ public class TeacherExamController {
         teacherExamService.triggerUpcomingExamReminders(user.getUsername());
         return ResponseEntity.ok(new APIResponse<>(200, "Reminders dispatched successfully", null));
     }
+
+    @GetMapping("/{examId}/analytics")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<APIResponse<ExamAnalyticsDTO>> getExamAnalytics(
+            @PathVariable Integer examId,
+            @AuthenticationPrincipal UserDetails user) {
+
+        ExamAnalyticsDTO analytics = teacherExamService.getExamAnalytics(examId, user.getUsername());
+        return ResponseEntity.ok(new APIResponse<>(200, "Analytics fetched successfully", analytics));
+    }
 }

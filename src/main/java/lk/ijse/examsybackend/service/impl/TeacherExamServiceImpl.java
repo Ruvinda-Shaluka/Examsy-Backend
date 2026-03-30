@@ -14,7 +14,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -449,5 +451,114 @@ public class TeacherExamServiceImpl implements TeacherExamService {
                 }
             }
         }
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public ExamAnalyticsDTO getExamAnalytics(Integer examId, String teacherUsername) {
+        // 1. Verify Ownership
+        Exam exam = examRepository.findById(examId)
+                .orElseThrow(() -> new RuntimeException("Exam not found"));
+
+        if (!exam.getCourse().getTeacher().getUserAccount().getUsername().equals(teacherUsername)) {
+            throw new RuntimeException("Unauthorized access to exam analytics");
+        }
+
+        // 2. Fetch Data
+        int totalEnrolled = classEnrollmentRepo.countByCourseId(exam.getCourse().getId());
+
+        // Only fetch submissions that actually have a final score
+        List<ExamSubmission> gradedSubmissions = examSubmissionRepo.findByExamId(examId).stream()
+                .filter(sub -> sub.getFinalScore() != null)
+                .collect(java.util.stream.Collectors.toList());
+
+        // 3. Handle Empty State
+        if (gradedSubmissions.isEmpty() || exam.getMaxScore() == null || exam.getMaxScore().compareTo(BigDecimal.ZERO) == 0) {
+            return ExamAnalyticsDTO.builder()
+                    .examId(examId)
+                    .examTitle(exam.getTitle())
+                    .averageScore("0.0")
+                    .topScorerName("N/A")
+                    .topScore("0.0")
+                    .lowestScore("0.0")
+                    .medianScore("0.0")
+                    .totalStudents(totalEnrolled)
+                    .participationRate("0.0")
+                    .atRiskCount(0)
+                    .passRate("0.0")
+                    .gradeDistribution(Map.of("A (85+)", 0, "B (70-84)", 0, "C (55-69)", 0, "S (40-54)", 0, "F (<40)", 0))
+                    .build();
+        }
+
+        // 4. Calculate Metrics
+        double totalPct = 0;
+        double highestPct = -1;
+        double lowestPct = 101;
+        String topStudent = "";
+        int passedCount = 0;
+        int atRiskCount = 0;
+
+        List<Double> allPercentages = new java.util.ArrayList<>();
+        Map<String, Integer> distribution = new LinkedHashMap<>();
+        distribution.put("A (85+)", 0);
+        distribution.put("B (70-84)", 0);
+        distribution.put("C (55-69)", 0);
+        distribution.put("S (40-54)", 0);
+        distribution.put("F (<40)", 0);
+
+        for (ExamSubmission sub : gradedSubmissions) {
+            double pct = sub.getFinalScore().divide(exam.getMaxScore(), 4, java.math.RoundingMode.HALF_UP).doubleValue() * 100;
+            allPercentages.add(pct);
+            totalPct += pct;
+
+            if (pct > highestPct) {
+                highestPct = pct;
+                topStudent = sub.getStudent().getFullName();
+            }
+            if (pct < lowestPct) {
+                lowestPct = pct;
+            }
+
+            if (pct >= 40) passedCount++;
+            if (pct < 40) atRiskCount++;
+
+            // Distribution Sorting
+            if (pct >= 85) distribution.put("A (85+)", distribution.get("A (85+)") + 1);
+            else if (pct >= 70) distribution.put("B (70-84)", distribution.get("B (70-84)") + 1);
+            else if (pct >= 55) distribution.put("C (55-69)", distribution.get("C (55-69)") + 1);
+            else if (pct >= 40) distribution.put("S (40-54)", distribution.get("S (40-54)") + 1);
+            else distribution.put("F (<40)", distribution.get("F (<40)") + 1);
+        }
+
+        // 5. Final Math Operations
+        double avg = totalPct / gradedSubmissions.size();
+        double participation = ((double) gradedSubmissions.size() / totalEnrolled) * 100;
+        double passRate = ((double) passedCount / gradedSubmissions.size()) * 100;
+
+        java.util.Collections.sort(allPercentages);
+        double median = 0;
+        int size = allPercentages.size();
+        if (size > 0) {
+            if (size % 2 == 0) {
+                median = (allPercentages.get(size / 2 - 1) + allPercentages.get(size / 2)) / 2.0;
+            } else {
+                median = allPercentages.get(size / 2);
+            }
+        }
+
+        return ExamAnalyticsDTO.builder()
+                .examId(examId)
+                .examTitle(exam.getTitle())
+                .averageScore(String.format("%.1f", avg))
+                .topScorerName(topStudent)
+                .topScore(String.format("%.1f", highestPct))
+                .lowestScore(String.format("%.1f", lowestPct))
+                .medianScore(String.format("%.1f", median))
+                .totalStudents(totalEnrolled)
+                .participationRate(String.format("%.1f", participation))
+                .atRiskCount(atRiskCount)
+                .passRate(String.format("%.0f", passRate))
+                .gradeDistribution(distribution)
+                .build();
     }
 }
