@@ -1,7 +1,5 @@
-Send exam reminders to students
+Student Classroom -> Grades at last
 
 Teacher Classroom -> Grades at last
-
-Student Classroom -> Grades at last
 
 Search Functionality
