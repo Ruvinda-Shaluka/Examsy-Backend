@@ -131,11 +131,20 @@ public class TeacherExamController {
             @PathVariable Integer examId,
             @PathVariable Integer submissionId,
             @RequestParam java.math.BigDecimal score,
-            @RequestBody(required = false) Map<String, String> payload, // For passing the AI comments
+            @RequestBody(required = false) Map<String, Object> payload,
             @AuthenticationPrincipal UserDetails user) {
 
-        String feedback = payload != null ? payload.get("comments") : "";
-        teacherExamService.approveAndReleaseGrade(user.getUsername(), submissionId, score, feedback);
+        // Extract feedback
+        String feedback = payload != null && payload.get("comments") != null ? payload.get("comments").toString() : "Manually Graded";
+
+        // Extract AI's calculated score
+        java.math.BigDecimal calculatedScore = null;
+        if (payload != null && payload.get("aiScore") != null) {
+            calculatedScore = new java.math.BigDecimal(payload.get("aiScore").toString());
+        }
+
+        // Pass everything to the service
+        teacherExamService.approveAndReleaseGrade(user.getUsername(), submissionId, score, calculatedScore, feedback);
 
         return ResponseEntity.ok(new APIResponse<>(200, "Grade released successfully", null));
     }

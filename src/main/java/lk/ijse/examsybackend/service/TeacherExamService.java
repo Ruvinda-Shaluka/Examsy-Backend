@@ -35,5 +35,5 @@ public interface TeacherExamService {
     List<PendingGradingDTO> getPendingPdfGradings(String teacherUsername);
 
     @Transactional
-    void approveAndReleaseGrade(String teacherUsername, Integer submissionId, BigDecimal finalScore, String feedback);
+    void approveAndReleaseGrade(String teacherUsername, Integer submissionId, BigDecimal finalScore, BigDecimal calculatedScore, String feedback);
 }

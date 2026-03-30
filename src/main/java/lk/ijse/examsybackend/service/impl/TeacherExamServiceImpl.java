@@ -332,7 +332,7 @@ public class TeacherExamServiceImpl implements TeacherExamService {
 
     @Transactional
     @Override
-    public void approveAndReleaseGrade(String teacherUsername, Integer submissionId, BigDecimal finalScore, String feedback) {
+    public void approveAndReleaseGrade(String teacherUsername, Integer submissionId, BigDecimal finalScore, BigDecimal calculatedScore, String feedback) {
         // 1. Fetch the submission
         ExamSubmission submission = examSubmissionRepo.findById(submissionId)
                 .orElseThrow(() -> new RuntimeException("Submission not found."));
@@ -343,16 +343,35 @@ public class TeacherExamServiceImpl implements TeacherExamService {
             throw new RuntimeException("Unauthorized to grade this exam.");
         }
 
-        // 3. Update the Submission record
-        submission.setFinalScore(finalScore);
-        submission.setStatus("GRADED"); // Mark it so it leaves the "Pending" queue!
+        // 3. 🟢 NEW: Calculate the Grade Letter automatically
+        BigDecimal maxScore = submission.getExam().getMaxScore();
+        String finalGrade = "N/A";
 
+        if (maxScore != null && maxScore.compareTo(BigDecimal.ZERO) > 0) {
+            // Calculate percentage
+            BigDecimal percentage = finalScore.divide(maxScore, 4, java.math.RoundingMode.HALF_UP)
+                    .multiply(BigDecimal.valueOf(100));
+
+            // Apply Examsy grading logic
+            double pct = percentage.doubleValue();
+            if (pct < 40) finalGrade = "F";
+            else if (pct < 55) finalGrade = "S";
+            else if (pct < 65) finalGrade = "C";
+            else if (pct < 75) finalGrade = "B";
+            else finalGrade = "A";
+        }
+
+        // 4. Update the Submission record with ALL grading data
+        // If there was no AI score (manually graded without AI), fallback to finalScore
+        submission.setCalculatedScore(calculatedScore != null ? calculatedScore : finalScore);
+        submission.setFinalScore(finalScore);
+        submission.setAwardedGradeLetter(finalGrade);
         submission.setPdfFeedback(feedback);
+        submission.setStatus("GRADED");
 
         examSubmissionRepo.save(submission);
 
-        // 4. Trigger the Notification!
+        // 5. Trigger the Notification!
         notificationService.notifyStudentOfGradedExam(submission, course, course.getTeacher().getFullName(), finalScore);
     }
-
 }
