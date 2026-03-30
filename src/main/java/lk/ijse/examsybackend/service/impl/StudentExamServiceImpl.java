@@ -112,7 +112,7 @@ public class StudentExamServiceImpl implements StudentExamService {
         ExamSubmission submission = submissionRepository.findByExamIdAndStudentId(examId, student.getId())
                 .orElseThrow(() -> new RuntimeException("Submission not found"));
 
-        if ("SUBMITTED".equals(submission.getStatus())) {
+        if ("SUBMITTED".equals(submission.getStatus()) || "GRADED".equals(submission.getStatus())) {
             throw new RuntimeException("Already submitted!");
         }
 
@@ -147,7 +147,6 @@ public class StudentExamServiceImpl implements StudentExamService {
                     BigDecimal maxPoints = question.getPoints() != null ? question.getPoints() : BigDecimal.valueOf(5);
 
                     try {
-                        // Call our new Groq service!
                         JsonNode aiResult = groqMockExamService.gradeShortAnswer(
                                 question.getQuestionText(),
                                 question.getModelAnswer(),
@@ -158,16 +157,14 @@ public class StudentExamServiceImpl implements StudentExamService {
                         BigDecimal awardedScore = BigDecimal.valueOf(aiResult.path("awarded_score").asDouble());
                         String feedback = aiResult.path("feedback").asText();
 
-                        // Cap the score just in case the AI hallucinates a higher number
                         if (awardedScore.compareTo(maxPoints) > 0) awardedScore = maxPoints;
                         if (awardedScore.compareTo(BigDecimal.ZERO) < 0) awardedScore = BigDecimal.ZERO;
 
                         answerRecord.setScoreAwarded(awardedScore);
-                        answerRecord.setFeedback(feedback); // Assuming you added this to your entity!
+                        answerRecord.setFeedback(feedback);
                         totalEarnedScore = totalEarnedScore.add(awardedScore);
 
                     } catch (Exception e) {
-                        // Fallback if AI fails: give 0 and flag for manual review
                         answerRecord.setScoreAwarded(BigDecimal.ZERO);
                         answerRecord.setFeedback("AI Grading Failed. Pending manual teacher review.");
                     }
@@ -177,42 +174,50 @@ public class StudentExamServiceImpl implements StudentExamService {
             }
         }
 
-        // Finalize Submission
+        // Finalize Submission Status and URL
         submission.setSubmittedAt(LocalDateTime.now());
-        submission.setStatus("SUBMITTED");
         submission.setPdfSubmissionUrl(dto.getPdfSubmissionUrl());
 
-        // Calculate Grades for MCQ and SHORT
         String finalGrade = "N/A";
         BigDecimal percentage = BigDecimal.ZERO;
+        String finalStatus = "PENDING_TEACHER_REVIEW";
 
+        // Calculate Grades for Auto-Graded Exams (MCQ and SHORT)
         if ("MCQ".equalsIgnoreCase(exam.getExamType()) || "SHORT".equalsIgnoreCase(exam.getExamType())) {
+            finalStatus = "GRADED";
+
+            // Set the exact score to both Calculated (AI) and Final (Teacher equivalent)
             submission.setCalculatedScore(totalEarnedScore);
             submission.setFinalScore(totalEarnedScore);
 
-            // Calculate Percentage safely
-            if (exam.getMaxScore().compareTo(BigDecimal.ZERO) > 0) {
+            // Calculate Percentage
+            if (exam.getMaxScore() != null && exam.getMaxScore().compareTo(BigDecimal.ZERO) > 0) {
                 percentage = totalEarnedScore.divide(exam.getMaxScore(), 4, RoundingMode.HALF_UP)
                         .multiply(BigDecimal.valueOf(100));
             }
 
-            // Determine Grade based on Examsy Logic
+            // Determine Examsy Grade Letter
             double pct = percentage.doubleValue();
             if (pct < 40) finalGrade = "F";
             else if (pct < 55) finalGrade = "S";
             else if (pct < 65) finalGrade = "C";
             else if (pct < 75) finalGrade = "B";
             else finalGrade = "A";
+
+            // Explicitly save the newly calculated grade letter to the database!
+            submission.setAwardedGradeLetter(finalGrade);
         }
 
+        submission.setStatus(finalStatus);
         submissionRepository.save(submission);
 
+        // Return the payload back to React to power the SubmitModal UI
         return ExamResultDTO.builder()
                 .score(totalEarnedScore)
                 .maxScore(exam.getMaxScore())
                 .percentage(percentage.setScale(1, RoundingMode.HALF_UP))
                 .grade(finalGrade)
-                .status("PDF".equalsIgnoreCase(exam.getExamType()) ? "PENDING_TEACHER_REVIEW" : "GRADED")
+                .status(finalStatus)
                 .message("Successfully submitted and graded!")
                 .build();
     }
