@@ -1,6 +1,6 @@
 package lk.ijse.examsybackend.controller;
 
-import lk.ijse.examsybackend.dto.AdminDashboardDTO;
+import lk.ijse.examsybackend.dto.response.AdminDashboardDTO;
 import lk.ijse.examsybackend.service.AdminDashboardService;
 import lk.ijse.examsybackend.util.APIResponse;
 import lombok.RequiredArgsConstructor;

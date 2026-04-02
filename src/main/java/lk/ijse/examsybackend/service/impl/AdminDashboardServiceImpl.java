@@ -1,6 +1,6 @@
 package lk.ijse.examsybackend.service.impl;
 
-import lk.ijse.examsybackend.dto.AdminDashboardDTO;
+import lk.ijse.examsybackend.dto.response.AdminDashboardDTO;
 import lk.ijse.examsybackend.dto.ReportDistributionDTO;
 import lk.ijse.examsybackend.entity.Role;
 import lk.ijse.examsybackend.repository.ReportRepo;
