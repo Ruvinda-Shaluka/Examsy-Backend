@@ -1,6 +1,6 @@
 package lk.ijse.examsybackend.controller;
 
-import lk.ijse.examsybackend.dto.NotificationDTO;
+import lk.ijse.examsybackend.dto.response.NotificationDTO;
 import lk.ijse.examsybackend.service.NotificationService;
 import lk.ijse.examsybackend.util.APIResponse;
 import lombok.RequiredArgsConstructor;

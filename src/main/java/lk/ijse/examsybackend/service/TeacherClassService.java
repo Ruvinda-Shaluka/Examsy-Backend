@@ -1,6 +1,7 @@
 package lk.ijse.examsybackend.service;
 
 import lk.ijse.examsybackend.dto.*;
+import lk.ijse.examsybackend.dto.response.ClassPeopleDTO;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;

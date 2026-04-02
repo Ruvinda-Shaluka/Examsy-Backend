@@ -2,7 +2,7 @@ package lk.ijse.examsybackend.service.impl;
 
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
-import lk.ijse.examsybackend.dto.NotificationDTO;
+import lk.ijse.examsybackend.dto.response.NotificationDTO;
 import lk.ijse.examsybackend.entity.*;
 import lk.ijse.examsybackend.repository.*;
 import lk.ijse.examsybackend.service.NotificationService;

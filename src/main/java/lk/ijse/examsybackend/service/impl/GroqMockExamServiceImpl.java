@@ -197,7 +197,8 @@ public class GroqMockExamServiceImpl implements GroqMockExamService {
     }
 
     @Override
-    public JsonNode gradeShortAnswer(String questionText, String modelAnswer, String studentAnswer, java.math.BigDecimal maxPoints) {
+    public JsonNode gradeShortAnswer(String questionText, String modelAnswer, String studentAnswer, java.math.BigDecimal maxPoints)
+    {
         String prompt = String.format("""
                 You are a highly strict, fair, and accurate exam grader.
                 

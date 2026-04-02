@@ -2,6 +2,7 @@ package lk.ijse.examsybackend.controller;
 
 import jakarta.validation.Valid;
 import lk.ijse.examsybackend.dto.*;
+import lk.ijse.examsybackend.dto.response.ClassPeopleDTO;
 import lk.ijse.examsybackend.service.TeacherClassService;
 import lk.ijse.examsybackend.util.APIResponse;
 import lombok.RequiredArgsConstructor;

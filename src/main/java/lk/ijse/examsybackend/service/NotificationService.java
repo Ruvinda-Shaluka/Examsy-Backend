@@ -1,6 +1,6 @@
 package lk.ijse.examsybackend.service;
 
-import lk.ijse.examsybackend.dto.NotificationDTO;
+import lk.ijse.examsybackend.dto.response.NotificationDTO;
 import lk.ijse.examsybackend.entity.Course;
 import lk.ijse.examsybackend.entity.Exam;
 import lk.ijse.examsybackend.entity.ExamSubmission;

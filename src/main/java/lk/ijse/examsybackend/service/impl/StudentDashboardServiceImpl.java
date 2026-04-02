@@ -1,6 +1,9 @@
 package lk.ijse.examsybackend.service.impl;
 
 import lk.ijse.examsybackend.dto.*;
+import lk.ijse.examsybackend.dto.response.CalendarExamDTO;
+import lk.ijse.examsybackend.dto.response.ClassPeopleDTO;
+import lk.ijse.examsybackend.dto.response.StudentClassCardDTO;
 import lk.ijse.examsybackend.entity.*;
 import lk.ijse.examsybackend.repository.*;
 import lk.ijse.examsybackend.service.NotificationService;
