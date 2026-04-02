@@ -1,8 +1,7 @@
 package lk.ijse.examsybackend.controller;
 
-import lk.ijse.examsybackend.dto.AdminReportDTO;
+import lk.ijse.examsybackend.dto.response.AdminReportDTO;
 import lk.ijse.examsybackend.service.AdminReportService;
-import lk.ijse.examsybackend.service.impl.AdminReportServiceImpl;
 import lk.ijse.examsybackend.util.APIResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
