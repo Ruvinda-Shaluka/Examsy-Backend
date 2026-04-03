@@ -2,6 +2,8 @@ package lk.ijse.examsybackend.service;
 
 import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.dto.request.AuthDTO;
+import lk.ijse.examsybackend.dto.request.StudentRegisterDTO;
+import lk.ijse.examsybackend.dto.request.TeacherRegisterDTO;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface AuthService {

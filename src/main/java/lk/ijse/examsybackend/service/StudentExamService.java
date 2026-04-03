@@ -2,6 +2,8 @@ package lk.ijse.examsybackend.service;
 
 import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.dto.request.ExamSubmitDTO;
+import lk.ijse.examsybackend.dto.request.ProctoringDTO;
+import lk.ijse.examsybackend.dto.request.ProctoringLogDTO;
 import lk.ijse.examsybackend.dto.response.ExamResultDTO;
 import lk.ijse.examsybackend.dto.response.StudentAnalyticsDTO;
 import lk.ijse.examsybackend.dto.response.StudentExamViewDTO;

@@ -2,6 +2,7 @@ package lk.ijse.examsybackend.service.impl;
 
 import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.dto.request.ExamPublishDTO;
+import lk.ijse.examsybackend.dto.request.UpdateExamDeadlineDTO;
 import lk.ijse.examsybackend.dto.response.ExamAnalyticsDTO;
 import lk.ijse.examsybackend.dto.response.ExamSummaryDTO;
 import lk.ijse.examsybackend.entity.*;

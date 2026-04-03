@@ -1,4 +1,4 @@
-package lk.ijse.examsybackend.dto;
+package lk.ijse.examsybackend.dto.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
