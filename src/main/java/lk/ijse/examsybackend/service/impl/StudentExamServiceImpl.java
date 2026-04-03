@@ -2,6 +2,7 @@ package lk.ijse.examsybackend.service.impl;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import lk.ijse.examsybackend.dto.*;
+import lk.ijse.examsybackend.dto.response.ExamResultDTO;
 import lk.ijse.examsybackend.dto.response.StudentAnalyticsDTO;
 import lk.ijse.examsybackend.dto.response.StudentExamViewDTO;
 import lk.ijse.examsybackend.dto.response.VaultExamsResponseDTO;

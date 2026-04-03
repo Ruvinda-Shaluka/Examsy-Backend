@@ -2,6 +2,8 @@ package lk.ijse.examsybackend.controller;
 
 import jakarta.validation.Valid;
 import lk.ijse.examsybackend.dto.*;
+import lk.ijse.examsybackend.dto.response.ExamAnalyticsDTO;
+import lk.ijse.examsybackend.dto.response.ExamSummaryDTO;
 import lk.ijse.examsybackend.service.SmartGradingService;
 import lk.ijse.examsybackend.service.TeacherExamService;
 import lk.ijse.examsybackend.util.APIResponse;
