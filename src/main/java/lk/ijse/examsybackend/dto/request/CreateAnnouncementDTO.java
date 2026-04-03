@@ -1,4 +1,4 @@
-package lk.ijse.examsybackend.dto;
+package lk.ijse.examsybackend.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;

@@ -2,6 +2,8 @@ package lk.ijse.examsybackend.controller;
 
 import jakarta.validation.Valid;
 import lk.ijse.examsybackend.dto.*;
+import lk.ijse.examsybackend.dto.request.AuthDTO;
+import lk.ijse.examsybackend.dto.request.ForgotPasswordDTO;
 import lk.ijse.examsybackend.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

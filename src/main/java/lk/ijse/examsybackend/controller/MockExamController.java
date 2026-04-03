@@ -1,6 +1,6 @@
 package lk.ijse.examsybackend.controller;
 
-import lk.ijse.examsybackend.dto.MockExamRequestDTO;
+import lk.ijse.examsybackend.dto.request.MockExamRequestDTO;
 import lk.ijse.examsybackend.entity.MockExam;
 import lk.ijse.examsybackend.service.GroqMockExamService;
 import lk.ijse.examsybackend.util.APIResponse;

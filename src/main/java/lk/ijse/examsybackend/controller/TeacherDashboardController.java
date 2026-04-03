@@ -1,7 +1,7 @@
 package lk.ijse.examsybackend.controller;
 
 import lk.ijse.examsybackend.dto.response.CalendarExamDTO;
-import lk.ijse.examsybackend.dto.CourseCreateDTO;
+import lk.ijse.examsybackend.dto.request.CourseCreateDTO;
 import lk.ijse.examsybackend.dto.TeacherClassCardDTO;
 import lk.ijse.examsybackend.service.TeacherDashboardService;
 import lk.ijse.examsybackend.util.APIResponse;

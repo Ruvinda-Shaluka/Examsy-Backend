@@ -2,7 +2,7 @@ package lk.ijse.examsybackend.controller;
 
 import jakarta.validation.Valid;
 import lk.ijse.examsybackend.dto.reqres.AdminProfileDTO;
-import lk.ijse.examsybackend.dto.AdminProfileUpdateDTO;
+import lk.ijse.examsybackend.dto.request.AdminProfileUpdateDTO;
 import lk.ijse.examsybackend.service.AdminProfileService;
 import lk.ijse.examsybackend.util.APIResponse;
 import lombok.RequiredArgsConstructor;

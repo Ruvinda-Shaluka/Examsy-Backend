@@ -1,6 +1,7 @@
 package lk.ijse.examsybackend.service.impl;
 
 import lk.ijse.examsybackend.dto.*;
+import lk.ijse.examsybackend.dto.request.AuthDTO;
 import lk.ijse.examsybackend.entity.Role;
 import lk.ijse.examsybackend.entity.Student;
 import lk.ijse.examsybackend.entity.Teacher;
