@@ -7,6 +7,8 @@ import lk.ijse.examsybackend.dto.request.MessageRequestDTO;
 import lk.ijse.examsybackend.dto.request.UpdateExamDeadlineDTO;
 import lk.ijse.examsybackend.dto.response.ExamAnalyticsDTO;
 import lk.ijse.examsybackend.dto.response.ExamSummaryDTO;
+import lk.ijse.examsybackend.dto.response.OngoingExamGroupDTO;
+import lk.ijse.examsybackend.dto.response.PendingGradingDTO;
 import lk.ijse.examsybackend.service.SmartGradingService;
 import lk.ijse.examsybackend.service.TeacherExamService;
 import lk.ijse.examsybackend.util.APIResponse;

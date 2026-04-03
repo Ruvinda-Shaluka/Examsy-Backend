@@ -5,6 +5,8 @@ import lk.ijse.examsybackend.dto.request.ExamPublishDTO;
 import lk.ijse.examsybackend.dto.request.UpdateExamDeadlineDTO;
 import lk.ijse.examsybackend.dto.response.ExamAnalyticsDTO;
 import lk.ijse.examsybackend.dto.response.ExamSummaryDTO;
+import lk.ijse.examsybackend.dto.response.OngoingExamGroupDTO;
+import lk.ijse.examsybackend.dto.response.PendingGradingDTO;
 import lk.ijse.examsybackend.entity.*;
 import lk.ijse.examsybackend.repository.*;
 import lk.ijse.examsybackend.service.NotificationService;

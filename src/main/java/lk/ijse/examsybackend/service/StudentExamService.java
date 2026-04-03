@@ -1,13 +1,9 @@
 package lk.ijse.examsybackend.service;
 
-import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.dto.request.ExamSubmitDTO;
 import lk.ijse.examsybackend.dto.request.ProctoringDTO;
 import lk.ijse.examsybackend.dto.request.ProctoringLogDTO;
-import lk.ijse.examsybackend.dto.response.ExamResultDTO;
-import lk.ijse.examsybackend.dto.response.StudentAnalyticsDTO;
-import lk.ijse.examsybackend.dto.response.StudentExamViewDTO;
-import lk.ijse.examsybackend.dto.response.VaultExamsResponseDTO;
+import lk.ijse.examsybackend.dto.response.*;
 import org.springframework.transaction.annotation.Transactional;
 
 public interface StudentExamService {
