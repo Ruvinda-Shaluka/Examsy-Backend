@@ -1,6 +1,6 @@
 package lk.ijse.examsybackend.controller;
 
-import lk.ijse.examsybackend.dto.TeacherDTO;
+import lk.ijse.examsybackend.dto.reqres.TeacherDTO;
 import lk.ijse.examsybackend.service.TeacherProfileService;
 import lk.ijse.examsybackend.util.APIResponse;
 import lombok.RequiredArgsConstructor;

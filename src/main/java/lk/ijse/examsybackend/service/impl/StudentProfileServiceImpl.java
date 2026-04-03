@@ -1,6 +1,6 @@
 package lk.ijse.examsybackend.service.impl;
 
-import lk.ijse.examsybackend.dto.StudentDTO;
+import lk.ijse.examsybackend.dto.reqres.StudentDTO;
 import lk.ijse.examsybackend.entity.Student;
 import lk.ijse.examsybackend.repository.StudentRepo;
 import lk.ijse.examsybackend.service.StudentProfileService;

@@ -1,8 +1,8 @@
 package lk.ijse.examsybackend.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lk.ijse.examsybackend.dto.StudentDTO;
-import lk.ijse.examsybackend.dto.TeacherDTO;
+import lk.ijse.examsybackend.dto.reqres.StudentDTO;
+import lk.ijse.examsybackend.dto.reqres.TeacherDTO;
 import lk.ijse.examsybackend.entity.Student;
 import lk.ijse.examsybackend.entity.Teacher;
 import lk.ijse.examsybackend.repository.UserAccountRepo;

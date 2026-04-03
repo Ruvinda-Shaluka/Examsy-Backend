@@ -6,8 +6,8 @@ import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
-public class APIResponse {
+public class APIResponse<T> {
     private int code;
     private String message;
-    private Object data;
+    private T data;
 }

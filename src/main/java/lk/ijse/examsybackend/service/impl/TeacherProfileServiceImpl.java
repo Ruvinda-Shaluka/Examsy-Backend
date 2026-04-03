@@ -1,6 +1,6 @@
 package lk.ijse.examsybackend.service.impl;
 
-import lk.ijse.examsybackend.dto.TeacherDTO;
+import lk.ijse.examsybackend.dto.reqres.TeacherDTO;
 import lk.ijse.examsybackend.entity.Teacher;
 import lk.ijse.examsybackend.repository.TeacherRepo;
 import lk.ijse.examsybackend.service.TeacherProfileService;

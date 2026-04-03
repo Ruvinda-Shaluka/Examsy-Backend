@@ -1,6 +1,6 @@
 package lk.ijse.examsybackend.service;
 
-import lk.ijse.examsybackend.dto.TeacherDTO;
+import lk.ijse.examsybackend.dto.reqres.TeacherDTO;
 
 public interface TeacherProfileService {
     TeacherDTO getMyProfile(String username);

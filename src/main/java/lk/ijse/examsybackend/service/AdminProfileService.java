@@ -1,6 +1,6 @@
 package lk.ijse.examsybackend.service;
 
-import lk.ijse.examsybackend.dto.AdminProfileDTO;
+import lk.ijse.examsybackend.dto.reqres.AdminProfileDTO;
 import lk.ijse.examsybackend.dto.AdminProfileUpdateDTO;
 import org.springframework.transaction.annotation.Transactional;
 

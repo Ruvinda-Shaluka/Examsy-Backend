@@ -1,6 +1,6 @@
 package lk.ijse.examsybackend.service.impl;
 
-import lk.ijse.examsybackend.dto.AdminProfileDTO;
+import lk.ijse.examsybackend.dto.reqres.AdminProfileDTO;
 import lk.ijse.examsybackend.dto.AdminProfileUpdateDTO;
 import lk.ijse.examsybackend.entity.Admin;
 import lk.ijse.examsybackend.repository.AdminRepo;
