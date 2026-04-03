@@ -1,4 +1,4 @@
-package lk.ijse.examsybackend.dto;
+package lk.ijse.examsybackend.dto.nested;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

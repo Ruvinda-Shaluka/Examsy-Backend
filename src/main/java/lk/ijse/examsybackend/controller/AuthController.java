@@ -1,8 +1,8 @@
 package lk.ijse.examsybackend.controller;
 
 import jakarta.validation.Valid;
-import lk.ijse.examsybackend.dto.*;
 import lk.ijse.examsybackend.dto.request.*;
+import lk.ijse.examsybackend.dto.response.APIResponse;
 import lk.ijse.examsybackend.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

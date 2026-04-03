@@ -1,6 +1,6 @@
 package lk.ijse.examsybackend.dto.response;
 
-import lk.ijse.examsybackend.dto.StudentQuestionViewDTO;
+import lk.ijse.examsybackend.dto.nested.StudentQuestionViewDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

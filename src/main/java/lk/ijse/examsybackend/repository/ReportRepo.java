@@ -1,6 +1,6 @@
 package lk.ijse.examsybackend.repository;
 
-import lk.ijse.examsybackend.dto.ReportDistributionDTO;
+import lk.ijse.examsybackend.dto.nested.ReportDistributionDTO;
 import lk.ijse.examsybackend.entity.Report;
 import lk.ijse.examsybackend.entity.Teacher;
 import org.springframework.data.jpa.repository.JpaRepository;

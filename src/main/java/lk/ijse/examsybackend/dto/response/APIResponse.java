@@ -1,8 +1,7 @@
-package lk.ijse.examsybackend.dto;
+package lk.ijse.examsybackend.dto.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor

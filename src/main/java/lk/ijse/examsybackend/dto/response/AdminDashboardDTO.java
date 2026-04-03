@@ -1,5 +1,5 @@
 package lk.ijse.examsybackend.dto.response;
-import lk.ijse.examsybackend.dto.ReportDistributionDTO;
+import lk.ijse.examsybackend.dto.nested.ReportDistributionDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

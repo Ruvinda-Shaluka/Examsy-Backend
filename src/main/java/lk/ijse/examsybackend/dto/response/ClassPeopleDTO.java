@@ -1,6 +1,6 @@
 package lk.ijse.examsybackend.dto.response;
 
-import lk.ijse.examsybackend.dto.PersonDTO;
+import lk.ijse.examsybackend.dto.nested.PersonDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

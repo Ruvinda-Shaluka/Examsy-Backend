@@ -1,6 +1,6 @@
 package lk.ijse.examsybackend.service.impl;
 
-import lk.ijse.examsybackend.dto.*;
+import lk.ijse.examsybackend.dto.nested.PersonDTO;
 import lk.ijse.examsybackend.dto.request.JoinClassDTO;
 import lk.ijse.examsybackend.dto.request.ReportCreateDTO;
 import lk.ijse.examsybackend.dto.response.CalendarExamDTO;

@@ -1,7 +1,7 @@
 package lk.ijse.examsybackend.dto.request;
 
 import jakarta.validation.Valid;
-import lk.ijse.examsybackend.dto.AnswerSubmitDTO;
+import lk.ijse.examsybackend.dto.nested.AnswerSubmitDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

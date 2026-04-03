@@ -1,12 +1,11 @@
 package lk.ijse.examsybackend.service.impl;
 
-import lk.ijse.examsybackend.dto.*;
+import lk.ijse.examsybackend.dto.nested.OngoingExamDTO;
+import lk.ijse.examsybackend.dto.nested.ProctoringLogDetailDTO;
+import lk.ijse.examsybackend.dto.nested.QuestionDTO;
 import lk.ijse.examsybackend.dto.request.ExamPublishDTO;
 import lk.ijse.examsybackend.dto.request.UpdateExamDeadlineDTO;
-import lk.ijse.examsybackend.dto.response.ExamAnalyticsDTO;
-import lk.ijse.examsybackend.dto.response.ExamSummaryDTO;
-import lk.ijse.examsybackend.dto.response.OngoingExamGroupDTO;
-import lk.ijse.examsybackend.dto.response.PendingGradingDTO;
+import lk.ijse.examsybackend.dto.response.*;
 import lk.ijse.examsybackend.entity.*;
 import lk.ijse.examsybackend.repository.*;
 import lk.ijse.examsybackend.service.NotificationService;

@@ -1,4 +1,4 @@
-package lk.ijse.examsybackend.dto;
+package lk.ijse.examsybackend.dto.nested;
 
 import lombok.Data;
 import java.math.BigDecimal;

@@ -1,5 +1,6 @@
-package lk.ijse.examsybackend.dto;
+package lk.ijse.examsybackend.dto.response;
 
+import lk.ijse.examsybackend.dto.nested.ProctoringLogDetailDTO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;

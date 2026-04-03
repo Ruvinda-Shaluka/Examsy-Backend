@@ -3,7 +3,7 @@ package lk.ijse.examsybackend.dto.request;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
-import lk.ijse.examsybackend.dto.QuestionDTO;
+import lk.ijse.examsybackend.dto.nested.QuestionDTO;
 import lombok.Data;
 
 import java.math.BigDecimal;
