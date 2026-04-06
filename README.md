@@ -46,27 +46,6 @@ Welcome to **Examsy**, a modern, feature-rich online learning and examination pl
 
 ---
 
-## 🏗️ System Architecture & Data Flow
-
-The following diagram illustrates how the frontend interacts with the backend, database, and external third-party services.
-
-```mermaid
-graph TD
-    Client([React Frontend]) -->|REST API / JWT| Backend[Spring Boot Backend]
-    Client -.->|Direct Uploads| Cloud[Cloudinary API]
-    
-    subgraph Examsy Server Infrastructure
-    Backend -->|SQL Queries| DB[(MySQL Database)]
-    Backend -->|Prompt & Context| Groq[Groq AI Cloud]
-    Backend -->|SMTP Triggers| Mail[Email Service / Gmail]
-    end
-    
-    Groq -.->|Calculated Scores & Feedback| Backend
-    DB -.->|Entities & DTOs| Backend
-    Cloud -.->|Secure URLs| Client
-
-
-
 🚀 Installation & Setup Guide
 To run Examsy locally, you must run both the Spring Boot backend and the React frontend simultaneously. Follow these steps in order.
 
@@ -163,3 +142,22 @@ src/main/java/lk/ijse/examsybackend/
 ├── service/        # Core Business Logic (SmartGrading, Proctoring, Scheduling)
 └── security/       # JWT Filters and Authentication configuration
 Built with ❤️ for modern education.
+
+## 🏗️ System Architecture & Data Flow
+
+The following diagram illustrates how the frontend interacts with the backend, database, and external third-party services.
+
+```mermaid
+graph TD
+    Client([React Frontend]) -->|REST API / JWT| Backend[Spring Boot Backend]
+    Client -.->|Direct Uploads| Cloud[Cloudinary API]
+    
+    subgraph Examsy Server Infrastructure
+    Backend -->|SQL Queries| DB[(MySQL Database)]
+    Backend -->|Prompt & Context| Groq[Groq AI Cloud]
+    Backend -->|SMTP Triggers| Mail[Email Service / Gmail]
+    end
+    
+    Groq -.->|Calculated Scores & Feedback| Backend
+    DB -.->|Entities & DTOs| Backend
+    Cloud -.->|Secure URLs| Client
