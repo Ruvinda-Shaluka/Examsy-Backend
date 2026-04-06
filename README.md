@@ -73,7 +73,7 @@ graph TD
 To run Examsy locally, you must run both the Spring Boot backend and the React frontend simultaneously. Follow these steps in order.
 
 ### Prerequisites
-* **Java:** JDK 17 or higher
+* **Java:** JDK 21 or higher
 * **Node.js:** v16 or higher (with `npm` or `yarn`)
 * **Database:** MySQL Server installed and running locally
 * **External Accounts:** A [Groq API Key](https://console.groq.com/), a [Cloudinary](https://cloudinary.com/) account, and a Gmail account with "App Passwords" enabled for SMTP.
