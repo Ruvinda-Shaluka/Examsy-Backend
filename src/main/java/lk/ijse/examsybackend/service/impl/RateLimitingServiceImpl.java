@@ -23,8 +23,8 @@ public class RateLimitingServiceImpl implements RateLimitingService {
 
     private Bucket createNewBucket(String key) {
         // Allows 5 requests maximum, refills 1 token every 10 seconds.
-        Refill refill = Refill.intervally(1, Duration.ofSeconds(10));
-        Bandwidth limit = Bandwidth.classic(5, refill);
+        Refill refill = Refill.intervally(1, Duration.ofSeconds(2));
+        Bandwidth limit = Bandwidth.classic(10, refill);
         return Bucket.builder().addLimit(limit).build();
     }
 }
