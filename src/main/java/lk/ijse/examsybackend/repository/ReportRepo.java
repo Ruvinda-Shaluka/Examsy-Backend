@@ -16,6 +16,6 @@ public interface ReportRepo extends JpaRepository<Report, Integer> {
     long countByStatus(String status);
 
     // Group reports by category and count them for the bar chart
-    @Query("SELECT new lk.ijse.examsybackend.dto.ReportDistributionDTO(r.category, COUNT(r)) FROM Report r GROUP BY r.category")
+    @Query("SELECT new lk.ijse.examsybackend.dto.nested.ReportDistributionDTO(r.category, COUNT(r)) FROM Report r GROUP BY r.category")
     List<ReportDistributionDTO> countReportsByCategory();
 }
