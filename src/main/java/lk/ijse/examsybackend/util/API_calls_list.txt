@@ -1,0 +1,106 @@
+### **Total API Calls: 64**
+---
+
+### 🟢 POST Requests (Total: 25)
+**Student Service (5)**
+* `/student/dashboard/classes/join`
+* `/student/dashboard/classes/report`
+* `/student/exams/{examId}/submit`
+* `/student/exams/{examId}/log-event`
+* `/mock-exams/generate`
+
+**Teacher Service (12)**
+* `/teacher/dashboard/classes`
+* `/teacher/exams/publish`
+* `/teacher/classes/{classId}/announcements`
+* `/teacher/dashboard/rotate-codes`
+* `/teacher/classes/{classId}/invite`
+* `/teacher/classes/requests/{requestId}/approve`
+* `/teacher/classes/requests/{requestId}/reject`
+* `/teacher/exams/{examId}/broadcast`
+* `/teacher/exams/{examId}/warn/{studentId}`
+* `/teacher/exams/{examId}/grade/{submissionId}/auto`
+* `/teacher/exams/{examId}/grade/{submissionId}/approve?score={score}`
+* `/teacher/exams/trigger-reminders`
+
+**Admin Service (2)**
+* `/admin/reports/{reportId}/warn-teacher`
+* `/admin/reports/{reportId}/reply-student`
+
+**Auth Service (6)**
+* `/auth/sign-in`
+* `/auth/signup/student`
+* `/auth/signup/teacher`
+* `/auth/forgot-password`
+* `/auth/verify-code`
+* `/auth/reset-password`
+
+---
+
+### 🔵 GET Requests (Total: 23)
+**Student Service (7)**
+* `/students/me`
+* `/student/dashboard/classes`
+* `/student/exams/{examId}`
+* `/student/exams/vault/{classId}`
+* `/student/dashboard/classes/{classId}/people`
+* `/student/dashboard/calendar/exams`
+* `/student/exams/analytics`
+
+**Teacher Service (11)**
+* `/teachers/me`
+* `/teacher/dashboard/classes`
+* `/teacher/classes/{classId}/stream`
+* `/teacher/exams/class/{classId}`
+* `/teacher/classes/{classId}/people`
+* `/teacher/dashboard/calendar/exams`
+* `/teacher/classes/{classId}/requests`
+* `/teacher/exams/ongoing`
+* `/teacher/exams/{examId}/monitor`
+* `/teacher/exams/pending-gradings`
+* `/teacher/exams/{examId}/analytics`
+
+**Admin Service (3)**
+* `/admin/reports`
+* `/admins/me`
+* `/admin/dashboard/metrics`
+
+**Notification Service (2)**
+* `/notifications`
+* `/notifications/unread-count`
+
+---
+
+### 🟠 PUT Requests (Total: 9)
+**Student Service (1)**
+* `/students/me`
+
+**Teacher Service (4)**
+* `/teachers/me`
+* `/teacher/classes/{classId}/announcements/{announcementId}`
+* `/teacher/classes/{classId}/appearance`
+* `/teacher/exams/{examId}/timing`
+
+**Admin Service (2)**
+* `/admin/reports/{reportId}/dismiss`
+* `/admins/me`
+
+**Notification Service (2)**
+* `/notifications/{id}/read`
+* `/notifications/read-all`
+
+---
+
+### 🔴 DELETE Requests (Total: 7)
+**Student Service (1)**
+* `/student/dashboard/classes/{courseId}/unenroll`
+
+**Teacher Service (4)**
+* `/teacher/dashboard/classes/{classId}`
+* `/teacher/classes/{classId}/announcements/{announcementId}`
+* `/teacher/exams/{examId}`
+* `/teacher/classes/{classId}/students/{studentId}`
+
+**Admin Service (2)**
+* `/admin/reports/{reportId}/terminate-class`
+* `/admin/reports/{reportId}/terminate-teacher`
