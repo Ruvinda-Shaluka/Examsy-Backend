@@ -1,6 +1,6 @@
 package lk.ijse.examsybackend.config;
 
-import lk.ijse.examsybackend.security.RateLimitFilter; // Make sure to import this!
+import lk.ijse.examsybackend.security.RateLimitFilter;
 import lk.ijse.examsybackend.util.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -80,10 +80,12 @@ public class SecurityConfig {
                 // Call the method directly here to break the circular dependency!
                 .authenticationProvider(authenticateProvider())
 
-                // ADD THE RATE LIMIT FILTER BEFORE THE JWT FILTER
-                .addFilterBefore(rateLimitFilter, JwtAuthFilter.class)
+                // 1. FIRST: Run the JWT filter to extract the token and log the user in
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
 
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                // 2. THEN: Run the Rate Limiter (anchored after the standard auth filter)
+                // Now it knows exactly who the user is!
+                .addFilterAfter(rateLimitFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
