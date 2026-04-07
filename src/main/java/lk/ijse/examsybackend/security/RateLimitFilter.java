@@ -26,7 +26,34 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final List<String> protectedEndpoints = List.of(
             "/api/v1/auth/sign-in",
             "/api/v1/auth/forgot-password",
-            "/api/v1/student/dashboard/classes/join"
+            "/api/v1/student/dashboard/classes/join",
+            "/api/v1/student/dashboard/classes/report",
+            "/api/v1/mock-exams/generate",
+            "/api/v1/teacher/dashboard/classes",
+            "/api/v1/teacher/exams/publish",
+            "/api/v1/teacher/classes/{classId}/announcements",
+            "/api/v1/teacher/classes/{classId}/invite",
+            "/api/v1/teacher/exams/{examId}/broadcast",
+            "/api/v1/teacher/exams/{examId}/grade/{submissionId}/approve",
+            "/api/v1/admin/reports/{reportId}/warn-teacher",
+            "/api/v1/admin/reports/{reportId}/reply-student",
+            "/api/v1/auth/signup/student",
+            "/api/v1/auth/signup/teacher",
+            "/api/v1/auth/verify-code",
+            "/api/v1/auth/reset-password",
+            "/api/v1/students/me",
+            "/api/v1/teachers/me",
+            "/api/v1/teacher/classes/{classId}/announcements/{announcementId}",
+            "/api/v1/teacher/classes/{classId}/appearance",
+            "/api/v1/teacher/exams/{examId}/timing",
+            "/api/v1/admin/reports/{reportId}/dismiss",
+            "/api/v1/admins/me",
+            "/api/v1/student/dashboard/classes/{courseId}/unenroll",
+            "/api/v1/teacher/dashboard/classes/{classId}",
+            "/api/v1/teacher/exams/{examId}",
+            "/api/v1/teacher/classes/{classId}/students/{studentId}",
+            "/api/v1/admin/reports/{reportId}/terminate-class",
+            "/api/v1/admin/reports/{reportId}/terminate-teacher"
     );
 
     @Override
