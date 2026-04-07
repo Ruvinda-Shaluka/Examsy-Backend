@@ -1,5 +1,6 @@
 package lk.ijse.examsybackend.config;
 
+import lk.ijse.examsybackend.security.RateLimitFilter; // Make sure to import this!
 import lk.ijse.examsybackend.util.JwtAuthFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -28,6 +29,7 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
     private final PasswordEncoder passwordEncoder;
+    private final RateLimitFilter rateLimitFilter;
 
     private final OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler;
     private final CustomOAuth2AuthorizationRequestResolver customAuthorizationRequestResolver;
@@ -51,7 +53,7 @@ public class SecurityConfig {
                         // Keep your public login/signup endpoints
                         .requestMatchers("/api/v1/auth/**").permitAll()
 
-                        // 🟢 EXPLICITLY ALLOW OAUTH2 ENDPOINTS
+                        // EXPLICITLY ALLOW OAUTH2 ENDPOINTS
                         // Without these, Spring will block the Google redirect and throw a 403!
                         .requestMatchers("/oauth2/**", "/login/oauth2/code/**").permitAll()
 
@@ -59,13 +61,13 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                // ⚠️ CRITICAL CHANGE: I removed the strict STATELESS session policy here.
+                // CRITICAL CHANGE: I removed the strict STATELESS session policy here.
                 // .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Why? OAuth2 login requires a temporary, tiny session to store a CSRF "state" parameter
                 // between the time the user leaves for Google and the time they come back.
                 // Your JwtAuthFilter will still protect your actual API endpoints flawlessly.
 
-                // 🟢 ADD THE OAUTH2 LOGIN CONFIGURATION
+                // ADD THE OAUTH2 LOGIN CONFIGURATION
                 .oauth2Login(oauth2 -> oauth2
                         .authorizationEndpoint(authEndpoint -> authEndpoint
                                 // Wire up the custom resolver to catch the "?role=" parameter from React
@@ -77,6 +79,9 @@ public class SecurityConfig {
 
                 // Call the method directly here to break the circular dependency!
                 .authenticationProvider(authenticateProvider())
+
+                // ADD THE RATE LIMIT FILTER BEFORE THE JWT FILTER
+                .addFilterBefore(rateLimitFilter, JwtAuthFilter.class)
 
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
