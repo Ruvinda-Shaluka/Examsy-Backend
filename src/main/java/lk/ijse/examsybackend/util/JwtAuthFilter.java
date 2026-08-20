@@ -26,7 +26,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                                     HttpServletResponse response,
                                     FilterChain filterChain) throws ServletException, IOException {
 
-        // 🛡️ THE SHIELD: Let browser preflight (OPTIONS) requests pass through immediately!
+        // THE SHIELD: Let browser preflight (OPTIONS) requests pass through immediately!
         // This prevents CORS errors from crashing the security filter.
         if (request.getMethod().equalsIgnoreCase("OPTIONS")) {
             filterChain.doFilter(request, response);

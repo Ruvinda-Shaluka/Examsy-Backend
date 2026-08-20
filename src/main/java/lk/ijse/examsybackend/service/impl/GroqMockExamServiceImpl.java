@@ -138,7 +138,7 @@ public class GroqMockExamServiceImpl implements GroqMockExamService {
         headers.setBearerAuth(groqApiKey);
 
         Map<String, Object> body = Map.of(
-                "model", "llama-3.3-70b-versatile",
+                "model", "llama-3.1-8b-instant",
                 "messages", List.of(Map.of("role", "user", "content", prompt)),
                 "temperature", 0.2, // slight randomness improves reasoning
                 "response_format", Map.of("type", "json_object")
@@ -242,7 +242,7 @@ public class GroqMockExamServiceImpl implements GroqMockExamService {
         headers.setBearerAuth(groqApiKey1);
 
         Map<String, Object> body = Map.of(
-                "model", "llama-3.3-70b-versatile",
+                "model", "llama-3.1-8b-instant",
                 "messages", List.of(Map.of("role", "user", "content", prompt)),
                 "temperature", 0.1, // Very low temperature for strict, analytical grading
                 "response_format", Map.of("type", "json_object")

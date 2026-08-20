@@ -61,7 +61,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
 
-                // CRITICAL CHANGE: I removed the strict STATELESS session policy here.
+                // CRITICAL CHANGE: removed the strict STATELESS session policy here.
                 // .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 // Why? OAuth2 login requires a temporary, tiny session to store a CSRF "state" parameter
                 // between the time the user leaves for Google and the time they come back.
