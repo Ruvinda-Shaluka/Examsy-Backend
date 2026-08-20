@@ -38,7 +38,7 @@ Welcome to **Examsy**, a modern, feature-rich online learning and examination pl
 * **Routing & HTTP:** React Router DOM, Axios (with JWT Interceptors)
 
 **Backend (Server-Side)**
-* **Framework:** Java 17+, Spring Boot 3
+* **Framework:** Java 21+, Spring Boot 4
 * **Security:** Spring Security, JSON Web Tokens (JWT)
 * **Database:** MySQL, Spring Data JPA / Hibernate
 * **Integrations:** Groq API (LLM for grading), JavaMailSender (SMTP)
