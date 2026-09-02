@@ -34,3 +34,4 @@ build/
 
 # Application properties
 *.properties
+!*.properties.example
